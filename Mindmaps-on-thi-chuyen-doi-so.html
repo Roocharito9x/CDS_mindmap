@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mind map ôn thi — Tài liệu nâng cao (DR / chuyển đổi số)</title>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      securityLevel: "loose",
+      theme: "base",
+      themeVariables: {
+        primaryColor: "#e0f2fe",
+        primaryTextColor: "#0c4a6e",
+        primaryBorderColor: "#38bdf8",
+        lineColor: "#64748b",
+        secondaryColor: "#ecfdf5",
+        tertiaryColor: "#fef3c7",
+        fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+        fontSize: "14px"
+      },
+      mindmap: { padding: 12 }
+    });
+  </script>
+  <style>
+    :root {
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #0284c7;
+      --warn: #b45309;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(165deg, #f8fafc 0%, #e0f2fe 45%, #f1f5f9 100%);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 1.5rem clamp(1rem, 4vw, 3rem) 3rem;
+    }
+    h1 {
+      font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+      font-weight: 700;
+      margin: 0 0 0.5rem;
+      color: #0c4a6e;
+    }
+    .lead {
+      max-width: 52rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 1.25rem;
+    }
+    .banner {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      padding: 1rem 1.15rem;
+      margin-bottom: 1.75rem;
+      max-width: 56rem;
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+    }
+    .banner strong { color: #0c4a6e; }
+    .banner.warn {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+    section {
+      margin-bottom: 2rem;
+      max-width: 56rem;
+    }
+    h2 {
+      font-size: 1.15rem;
+      color: #0369a1;
+      margin: 0 0 0.75rem;
+      padding-bottom: 0.35rem;
+      border-bottom: 2px solid #bae6fd;
+    }
+    .mermaid {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 0.75rem 0 1.25rem;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+    }
+    details {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 0.65rem;
+      overflow: hidden;
+      box-shadow: 0 1px 8px rgba(15, 23, 42, 0.04);
+    }
+    summary {
+      cursor: pointer;
+      padding: 0.65rem 1rem;
+      font-weight: 600;
+      color: #0c4a6e;
+      background: linear-gradient(90deg, #f0f9ff, #ffffff);
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::before {
+      content: "▸";
+      color: var(--accent);
+      font-size: 0.85em;
+    }
+    details[open] summary::before { content: "▾"; }
+    .detail-body {
+      padding: 0.75rem 1rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    code.file {
+      font-size: 0.78rem;
+      background: #f1f5f9;
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      word-break: break-all;
+    }
+    ul.src {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0.35rem 0 0;
+      padding-left: 1.2rem;
+    }
+    .legend {
+      display: grid;
+      gap: 0.45rem;
+      font-size: 0.88rem;
+      margin-top: 0.75rem;
+    }
+    .legend span {
+      display: inline-block;
+      width: 0.65rem;
+      height: 0.65rem;
+      border-radius: 2px;
+      margin-right: 0.35rem;
+      vertical-align: middle;
+    }
+    .dot-a { background: #22c55e; }
+    .dot-b { background: #f59e0b; }
+    .dot-c { background: #94a3b8; }
+  </style>
+</head>
+<body>
+  <h1>Mind map kiến thức ôn thi — chuyển đổi số &amp; pháp luật liên quan</h1>
+  <p class="lead">
+    Bộ mind map dưới đây phục vụ cán bộ ôn cuộc thi về chuyển đổi số.
+    Cấu trúc <strong>Chương / Điều</strong> chỉ được đưa vào khi trích được từ tệp trong thư mục
+    <code class="file">BMAD/docs/Tai lieu nang cao</code> (PDF có lớp văn bản hoặc .doc/.docx).
+  </p>
+
+  <div class="banner warn">
+    <strong>Văn bản chỉ có bản quét (PDF không trích được nội dung).</strong>
+    Một số tệp trong thư mục là bản quét (trích <code>pdftotext</code> gần như không có nội dung).
+    Với các văn bản đó, mind map <em>không</em> liệt kê Điều khoản — chỉ ghi nhận đúng
+    số hiệu và tên theo <strong>DANH MỤC TÀI LIỆU THAM KHẢO v2.docx</strong>; để học chi tiết cần đối chiếu
+    bản công bố trên hệ thống văn bản quy phạm pháp luật / Cổng thông tin điện tử cơ quan ban hành.
+  </div>
+
+  <div class="banner">
+    <strong>Chú thích mức độ chi tiết trong mind map tổng</strong>
+    <div class="legend">
+      <div><span class="dot-a"></span> Đã có cấu trúc Chương trích từ tệp nguồn trong thư mục.</div>
+      <div><span class="dot-b"></span> Chỉ xác định được phần nhỏ (ví dụ vài dòng Chương) hoặc chỉ Điều hiệu lực.</div>
+      <div><span class="dot-c"></span> Chỉ khớp danh mục — nội dung chi tiết cần tra văn bản gốc điện tử.</div>
+    </div>
+  </div>
+
+  <section id="tong">
+    <h2>Mind map tổng — khối kiến thức &amp; mức độ cần học</h2>
+    <p class="meta">
+      Trục “ưu tiên” mang tính gợi ý cho nhân sự ngân hàng: khối <strong>NHNN / thanh toán / ATTT</strong>
+      thường sát nghiệp vụ vận hành; khối <strong>chiến lược quốc gia / NHNN</strong> để nắm định hướng;
+      khối <strong>luật nền</strong> để hiểu khung pháp lý dữ liệu, giao dịch điện tử, tổ chức tín dụng.
+    </p>
+    <div class="mermaid">
+mindmap
+  root((Ôn thi pháp luật CĐS))
+    Luật nền đã trích cấu trúc
+      Luật PC rửa tiền 14/2022
+      Luật GDTD 20/2023
+      Luật TCTD 32/2024
+      Luật Dữ liệu 60/2024 docx
+      NĐ kiểm soát TTHC 63/2010
+    NHNN vận hành kỹ thuật
+      TT an toàn HTTT 09/2020
+      Thông tư TT15 TT17 TT18 TT50 TT64 file PDF lỗi font
+    Chiến lược và định hướng
+      NQ 57 TW và NQ 71 CP scan
+      QĐ TTg 749 31 06 411 20 2439 2711 scan
+      QĐ NHNN 3579 3580 1938 chỉ thị 02 scan
+    Luật và NĐ chỉ có bản quét
+      Luật CĐS 148/2025 scan
+      Luật BV DLCN 91/2025 scan
+      Luật CN CNTT số 71/2025 scan
+      Luật TTT 134/2025 scan
+      NĐ 53 94 262 265 356 scan
+    Khung kỹ thuật đã trích một phần
+      QĐ 3090 khung kiến trúc TTQGS
+    Khác cần tra Công báo
+      QĐ 11 đạo đức HHNH scan
+      QĐ 1789 chứng từ kế toán doc
+    </div>
+  </section>
+
+  <section id="I">
+    <h2>I. Luật</h2>
+
+    <details open>
+      <summary>Luật 14/2022/QH15 — Phòng, chống rửa tiền <span style="font-weight:400;color:#64748b">(trích Chương từ PDF)</span></summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">I.1. Luật số 14.2022.QH15…pdf</code></p>
+        <div class="mermaid">
+mindmap
+  root((Luật PC rửa tiền))
+    Ch I NHỮNG QUY ĐỊNH CHUNG
+      Điều 1 đến 8 phạm vi nguyên tắc hợp tác quốc tế
+    Ch II BIỆN PHÁP PHÒNG CHỐNG RỬA TIỀN
+      Mục 1 Nhận biết KYC
+      Mục 2 Quy định nội bộ
+      Mục 3 Báo cáo giao dịch
+      Mục 4 Trì hoãn giao dịch
+    Ch III TRÁCH NHIỆM CƠ QUAN NHÀ NƯỚC
+    Ch IV ĐIỀU KHOẢN THI HÀNH và sửa luật liên quan
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Luật 20/2023/QH15 — Giao dịch điện tử</summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">I.2.Luật số 20.2023.QH15…pdf</code></p>
+        <div class="mermaid">
+mindmap
+  root((Luật Giao dịch điện tử))
+    Ch I NHỮNG QUY ĐỊNH CHUNG
+    Ch II THÔNG ĐIỆP DỮ LIỆU
+      Thể hiện giá trị pháp lý lưu trữ
+    Ch III CHỮ KÝ ĐIỆN TỬ VÀ DỊCH VỤ TIN CẬY
+    Ch IV GIAO KẾT VÀ THỰC HIỆN HỢP ĐỒNG ĐIỆN TỬ
+    Ch V GIAO DỊCH ĐIỆN TỬ CỦA CQ NN
+    Ch VI HỆ THỐNG THÔNG TIN PHỤC VỤ GDTD
+    Ch VII QUẢN LÝ NHÀ NƯỚC VỀ GDTD
+    Ch VIII ĐIỀU KHOẢN THI HÀNH
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Luật 32/2024/QH15 — Các tổ chức tín dụng</summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">I.3. Luật số 32.2024.QH15…pdf</code> — Trong bản PDF nguồn, các dòng bắt đầu bằng <code>Chương I–V</code> là các phần chính (Chương V rất dài, gồm nhiều mục hoạt động).</p>
+        <div class="mermaid">
+mindmap
+  root((Luật TCTD))
+    Ch I NHỮNG QUY ĐỊNH CHUNG
+    Ch II NGÂN HÀNG CHÍNH SÁCH
+    Ch III GIẤY PHÉP
+    Ch IV TỔ CHỨC QUẢN TRỊ ĐIỀU HÀNH TCTD
+    Ch V HOẠT ĐỘNG CỦA TCTD
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Luật 60/2024/QH15 — Dữ liệu</summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">I.4 Luật Dữ liệu.docx</code> — Tiêu đề Chương II trong tệp gốc ghi chữ “SỬ SỤNG” (giữ nguyên khi trích).</p>
+        <div class="mermaid">
+mindmap
+  root((Luật Dữ liệu))
+    Ch I QUY ĐỊNH CHUNG
+    Ch II XÂY DỰNG PHÁT TRIỂN BẢO VỆ QUẢN TRỊ XỬ LÝ SỬ SỤNG
+      Điều 11 đến 29 vòng đời dữ liệu
+    Ch III TRUNG TÂM DỮ LIỆU QUỐC GIA
+      Điều 30 đến 38 CSDL tổng hợp
+    Ch IV SẢN PHẨM DỊCH VỤ VỀ DỮ LIỆU
+    Ch V ĐIỀU KHOẢN THI HÀNH
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Luật 71/2025/QH15 — Công nghiệp công nghệ số <span style="color:#b45309">(PDF scan)</span></summary>
+      <div class="detail-body">
+        <p class="meta">Theo danh mục: Luật Công nghiệp công nghệ số. <code class="file">I.5. Luật Công nghiệp công nghệ số.pdf</code> — không trích được cấu trúc từ tệp.</p>
+        <div class="mermaid">
+mindmap
+  root((Luật 71/2025 Công nghiệp CNTT số))
+    Học theo văn bản gốc điện tử
+    Không trích Chương từ file scan
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Luật 91/2025/QH15 — Bảo vệ dữ liệu cá nhân <span style="color:#b45309">(PDF scan)</span></summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">I.6 Luật Bảo vệ dữ liệu cá nhân.pdf</code></p>
+        <div class="mermaid">
+mindmap
+  root((Luật BV dữ liệu cá nhân))
+    Tra cứu văn bản trên Công báo
+    So khớp với NĐ 356/2025 chi tiết
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Luật 134/2025/QH15 — Trí tuệ nhân tạo <span style="color:#b45309">(PDF scan)</span></summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">I.7 Luật Trí tuệ nhân tạo.pdf</code></p>
+        <div class="mermaid">
+mindmap
+  root((Luật Trí tuệ nhân tạo))
+    Khung điều chỉnh AI tại VN
+    Nội dung chi tiết từ văn bản gốc
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>Luật 148/2025/QH15 — Chuyển đổi số <span style="color:#b45309">(PDF scan)</span></summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">I.8 Luật Chuyển đổi số.pdf</code></p>
+        <div class="mermaid">
+mindmap
+  root((Luật Chuyển đổi số))
+    Trụ cột pháp lý CĐS quốc gia
+    Đọc toàn văn trên Công báo
+    Liên hệ NQ 57 QĐ 749 QĐ 411
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section id="II">
+    <h2>II. Nghị định</h2>
+    <details>
+      <summary>NĐ 53/2022/NĐ-CP — Chi tiết Luật An ninh mạng <span style="color:#b45309">(scan)</span></summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((NĐ 53/2022))
+    Chi tiết LANM đọc bản điện tử
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>NĐ 94/2025 — Sandbox ngân hàng <span style="color:#b45309">(scan)</span></summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((NĐ 94/2025))
+    Cơ chế thử nghiệm có kiểm soát
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>NĐ 262/2025 — Luật KHCN ĐMST <span style="color:#b45309">(scan)</span></summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((NĐ 262/2025))
+    Thông tin thống kê đánh giá CĐS
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>NĐ 265/2025 — Tài chính KHCN <span style="color:#b45309">(scan)</span></summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((NĐ 265/2025))
+    Tài chính đầu tư KHCN ĐMST
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>NĐ 356/2025 — Bảo vệ dữ liệu cá nhân <span style="color:#b45309">(scan)</span></summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((NĐ 356/2025))
+    Chi tiết Luật BV DLCN
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>NĐ 63/2010/NĐ-CP — Kiểm soát TTHC <span style="font-weight:400;color:#047857">(trích từ .doc)</span></summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">II.6 Nghị định 63.doc</code></p>
+        <div class="mermaid">
+mindmap
+  root((NĐ 63 kiểm soát TTHC))
+    Ch I NHỮNG QUY ĐỊNH CHUNG
+    Ch II QUY ĐỊNH THỦ TỤC HÀNH CHÍNH
+    Ch III THỰC HIỆN THỦ TỤC HÀNH CHÍNH
+    Ch IV CSDL QG VỀ TTHC
+    Ch V RÀ SOÁT ĐÁNH GIÁ TTHC
+    Ch VI KHEN THƯỞNG KINH PHÍ THÔNG TIN
+    Ch VII ĐIỀU KHOẢN THI HÀNH
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section id="III">
+    <h2>III. Thông tư NHNN</h2>
+    <details open>
+      <summary>TT 09/2020/TT-NHNN — An toàn HTTT ngân hàng</summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">III.1 Thông tư 09.pdf</code> — Chương II gồm nhiều Mục kỹ thuật.</p>
+        <div class="mermaid">
+mindmap
+  root((TT 09 an toàn HTTT))
+    Ch I QUY ĐỊNH CHUNG
+    Ch II BẢO ĐẢM AN TOÀN THÔNG TIN
+      Mục 1 Tài sản CNTT
+      Mục 2 Nguồn nhân lực
+      Mục 3 Cơ sở vật chất trung tâm dữ liệu
+      Mục 4 Vận hành hệ thống
+      Mục 5 Kiểm soát truy cập
+      Mục 6 Dịch vụ bên thứ ba
+      Mục 7 An toàn bảo mật hệ thống
+      Mục 8 Xử lý sự cố
+      Mục 9 Liên tục kinh doanh
+      Mục 10 Kiểm tra nội bộ
+    Ch III ĐIỀU KHOẢN THI HÀNH
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>TT 15/2024; TT 30/2025; TT 17/2024; TT 25/2025 — Thanh toán &amp; tài khoản</summary>
+      <div class="detail-body">
+        <p class="meta">Các tệp PDF có lớp văn bản nhưng font bị lỗi khi trích — chỉ xác định được phần đầu <code>Chương</code>.</p>
+        <ul class="src">
+          <li>Thông tư 15/2024 — dịch vụ thanh toán không dùng tiền mặt</li>
+          <li>Thông tư 30/2025 — sửa đổi TT 15</li>
+          <li>Thông tư 17/2024 — tài khoản thanh toán</li>
+          <li>Thông tư 25/2025 — sửa đổi TT 17</li>
+        </ul>
+        <div class="mermaid">
+mindmap
+  root((TT thanh toán và TK))
+    TT 15 DVTT không tiền mặt
+    TT 30 sửa TT 15
+    TT 17 mở và sử dụng TK
+    TT 25 sửa TT 17
+    Chi tiết Điều đọc Công báo
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>TT 18/2024 — Thẻ ngân hàng</summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((TT 18 thẻ NH))
+    Ch I II VI nhận diện lỏng từ PDF
+    Đọc toàn văn chính thức
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>TT 50/2024 &amp; TT 77/2025 — Dịch vụ trực tuyến, an toàn bảo mật</summary>
+      <div class="detail-body">
+        <p class="meta">TT 77 sửa đổi TT 50 — file trong thư mục là bản ký số; trích cấu trúc không ổn định.</p>
+        <div class="mermaid">
+mindmap
+  root((TT 50 và TT 77))
+    DV trực tuyến ngành Ngân hàng
+    TT 77 bổ sung sửa TT 50
+        </div>
+      </div>
+    </details>
+
+    <details>
+      <summary>TT 64/2024 — API mở ngân hàng</summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((TT 64 Open API))
+    Ch II III xác định sơ bộ
+    Chi tiết đọc toàn văn
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section id="IV">
+    <h2>IV. Nghị quyết</h2>
+    <details>
+      <summary>NQ 57-NQ/TW; NQ 71/NQ-CP <span style="color:#b45309">(scan)</span></summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((NQ 57 và 71))
+    Đột phá KHCN ĐMST và CĐS
+    NQ 71 cập nhật chương trình CP
+    Học theo bản đầy đủ
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section id="V">
+    <h2>V. Quyết định Thủ tướng</h2>
+    <details>
+      <summary>QĐ 749, 31, 06, 411, 20, 2439, 2711 <span style="color:#b45309">(scan)</span></summary>
+      <div class="detail-body">
+        <p class="meta">Tên đầy đủ theo danh mục: Chương trình CĐS QG; Quy chế Cổng DVC QG; Đề án dữ liệu dân cư; Chiến lược kinh tế số; Danh mục dữ liệu quan trọng; Khung dữ liệu QG; Chiến lược đội ngũ trí thức.</p>
+        <div class="mermaid">
+mindmap
+  root((QĐ Thủ tướng))
+    QĐ 749 Chương trình CĐS QG
+    QĐ 31 Cổng DVC QG
+    QĐ 06 dữ liệu dân cư định danh
+    QĐ 411 kinh tế số xã hội số
+    QĐ 20 dữ liệu quan trọng cốt lõi
+    QĐ 2439 khung dữ liệu QG
+    QĐ 2711 đội ngũ trí thức
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section id="VI">
+    <h2>VI. Quyết định / chỉ thị bộ ngành</h2>
+    <details>
+      <summary>QĐ 3579, 3580, 1938; Chỉ thị 02/CT-NHNN <span style="color:#b45309">(scan / text lỗi)</span></summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((NHNN CĐS và triển khai))
+    QĐ 3579 Chiến lược CĐS ngành NH
+    QĐ 3580 Chiến lược dữ liệu NH
+    QĐ 1938 Kế hoạch phong trào học vụ số
+    CT 02 đẩy mạnh CĐS ATTT 2026
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>QĐ 11/QĐ-HHNH — Đạo đức nghề nghiệp <span style="color:#b45309">(scan)</span></summary>
+      <div class="detail-body">
+        <div class="mermaid">
+mindmap
+  root((QĐ 11 đạo đức ngân hàng))
+    Chuẩn mực hành vi cán bộ
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>QĐ 3090/BKHCN — Khung kiến trúc tổng thể quốc gia số</summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">VI.4 QĐ 3090_ban hanh khung kien truc ttqgs.pdf</code></p>
+        <div class="mermaid">
+mindmap
+  root((QĐ 3090 Khung kiến trúc TTQGS))
+    Điều 1 ban hành khung kèm theo
+    Điều 2 hiệu lực
+    Điều 3 trách nhiệm thi hành
+        </div>
+      </div>
+    </details>
+    <details>
+      <summary>QĐ 1789/2005/NHNN — Chứng từ kế toán</summary>
+      <div class="detail-body">
+        <p class="meta"><code class="file">VI.7 QD 1789-2005-NHNN.doc</code> — Trích được một phần đầu.</p>
+        <div class="mermaid">
+mindmap
+  root((QĐ 1789 chứng từ kế toán))
+    Điều 2 đối tượng
+    Điều 3 hình thức mẫu chứng từ
+    Điều 4 hợp pháp hợp lệ
+    Điều 5 nội dung chứng từ
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <p class="meta" style="margin-top:2rem;max-width:48rem">
+    <strong>Nguồn danh mục &amp; tên văn bản:</strong> <code class="file">DANH MỤC TÀI LIỆU THAM KHẢO v2.docx</code> trong cùng thư mục.
+    File HTML này có thể mở trực tiếp bằng trình duyệt; mind map do thư viện Mermaid.js kết xuất.
+  </p>
+</body>
+</html>
