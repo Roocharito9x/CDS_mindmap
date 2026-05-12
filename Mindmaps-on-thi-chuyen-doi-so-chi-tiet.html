@@ -284,8 +284,9 @@ window.addEventListener('DOMContentLoaded', function () {
  s = s.replace(/["'`]/g, '');
  s = s.replace(/[[\]{}]/g, ' ');
  s = s.replace(/\(/g, ' ').replace(/\)/g, ' ');
- // Colon and double-hyphen break Mermaid mindmap syntax
+ // Colon, semicolon, double-hyphen break Mermaid mindmap syntax
  s = s.replace(/:/g, ' -');
+ s = s.replace(/;/g, ' ');
  s = s.replace(/-{2,}/g, '-');
  s = s.replace(/\s+/g, ' ').trim();
  if (s.length > 78) s = s.slice(0, 75) + '…';
