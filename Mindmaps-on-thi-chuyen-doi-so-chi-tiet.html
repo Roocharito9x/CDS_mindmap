@@ -83,6 +83,19 @@ h3 { margin:4px 0 6px; color:#0f172a; font-size:19px; }
 .article > summary { cursor:pointer; padding:10px 12px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .article-num { font-weight:900; color:#0369a1; background:#e0f2fe; border-radius:8px; padding:2px 7px; }
 .article ul { margin:0; padding:0 16px 12px 42px; color:#334155; }
+/* ── Khoản / Điểm structure ── */
+.khoan-list { margin:4px 14px 10px 38px; display:flex; flex-direction:column; gap:3px; }
+.khoan { border-left:3px solid #cbd5e1; border-radius:0 8px 8px 0; background:#f8fafc; transition:border-color .2s,background .2s; }
+.khoan[open] { border-left-color:#3b82f6; background:#eff6ff; }
+.khoan > summary { cursor:pointer; padding:5px 10px; font-size:12.5px; color:#334155; display:flex; gap:6px; align-items:flex-start; list-style:none; line-height:1.5; }
+.khoan > summary::-webkit-details-marker { display:none; }
+.khoan > summary::before { content:'▶'; font-size:8px; color:#94a3b8; margin-top:4px; flex-shrink:0; }
+.khoan[open] > summary::before { content:'▼'; color:#3b82f6; }
+.khoan-num { font-weight:800; color:#1d4ed8; background:#dbeafe; padding:1px 6px; border-radius:4px; font-size:11px; white-space:nowrap; flex-shrink:0; align-self:flex-start; margin-top:2px; }
+.khoan-text { flex:1; }
+.diem-list { padding:4px 10px 8px 16px; display:flex; flex-direction:column; gap:2px; }
+.diem { display:flex; gap:6px; font-size:12px; color:#475569; line-height:1.5; }
+.diem-char { font-weight:700; color:#7c3aed; min-width:22px; flex-shrink:0; }
 .review-table { margin:0 18px 18px; padding:14px; border:1px solid #e2e8f0; border-radius:14px; background:#fbfdff; }
 .review-table h4 { margin:0 0 10px; color:#0c4a6e; }
 .review-table table { width:100%; border-collapse:collapse; font-size:13px; } .review-table th,.review-table td { border:1px solid #e2e8f0; padding:8px; vertical-align:top; } .review-table th { background:#f1f5f9; }
@@ -305,7 +318,7 @@ window.addEventListener('DOMContentLoaded', function () {
  fold.appendChild(sum);
  var mm = document.createElement('div');
  mm.className = 'mermaid doc-dynamic-mindmap';
- var lines = ['mindmap', ' root((' + sanitizeMm(card.id) + '))'];
+ var lines = ['mindmap', '  root((' + sanitizeMm(card.id) + '))'];
  if (mindTree) {
  var chapters = mindTree.querySelectorAll(':scope > details.chapter');
  chapters.forEach(function (ch) {
@@ -315,12 +328,11 @@ window.addEventListener('DOMContentLoaded', function () {
  var st = summary.querySelector(':scope > strong');
  var label = '';
  if (sp) label += sp.textContent.trim();
- if (st) label += (label ? ' · ' : '') + st.textContent.trim();
+ if (st) label += (label ? ' - ' : '') + st.textContent.trim();
  if (!label) label = sanitizeMm(summary.textContent);
  else label = sanitizeMm(label);
- lines.push(' ' + label);
+ lines.push('    ' + label);
 
- // Show all extracted articles for each chapter so learners can review the full scope.
  var articles = ch.querySelectorAll(':scope .article-list > details.article');
  articles.forEach(function (a) {
  var as = a.querySelector(':scope > summary');
@@ -330,13 +342,13 @@ window.addEventListener('DOMContentLoaded', function () {
  .filter(function (spanEl) { return !spanEl.classList.contains('article-num') && !spanEl.classList.contains('mini'); })
  .map(function (spanEl) { return spanEl.textContent; });
  var at = sanitizeMm(titleParts.join(' '));
- var prefix = num ? num.textContent.trim() + ': ' : '';
- lines.push(' ' + sanitizeMm(prefix + at));
+ var prefix = num ? num.textContent.trim() + ' ' : '';
+ lines.push('      ' + sanitizeMm(prefix + at));
  });
  });
  }
  if (lines.length < 3) {
- lines.push(' ' + sanitizeMm('Xem cây chi tiết bên dưới hoặc tab Nguồn'));
+ lines.push('    ' + sanitizeMm('Xem chi tiết bên dưới'));
  }
  mm.textContent = lines.join('\n');
  fold.appendChild(mm);
