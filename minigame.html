@@ -2,13 +2,13 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>BIDV Jigsaw Puzzle</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{width:100vw;height:100vh;overflow:hidden;background:#003d1e;font-family:Arial,sans-serif;user-select:none}
+html,body{width:100vw;height:100vh;height:100dvh;overflow:hidden;background:#003d1e;font-family:Arial,sans-serif;user-select:none}
 
 /* ── Portrait guard ── */
 #guard{display:none;position:fixed;inset:0;z-index:9999;background:#003d1e;
@@ -19,7 +19,8 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:#003d1e;font-famil
 
 /* ── Start screen ── */
 #start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;background:linear-gradient(135deg,#003d1e 0%,#006633 55%,#003d1e 100%);gap:0}
+  justify-content:center;background:linear-gradient(135deg,#003d1e 0%,#006633 55%,#003d1e 100%);gap:0;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 
 .stitle{color:rgba(255,255,255,.92);font-size:clamp(.85rem,2vw,1.1rem);
   letter-spacing:3px;font-weight:700;margin-bottom:16px}
@@ -77,8 +78,9 @@ html,body{width:100vw;height:100vh;overflow:hidden;background:#003d1e;font-famil
 #game{position:fixed;inset:0;display:none;flex-direction:column;background:#002510}
 #game.on{display:flex}
 #hud{height:50px;background:rgba(0,0,0,.5);display:flex;align-items:center;
-  justify-content:space-between;padding:0 18px;flex-shrink:0;
-  border-bottom:1px solid rgba(255,255,255,.1)}
+  justify-content:space-between;
+  padding:0 max(18px,env(safe-area-inset-right,0px)) 0 max(18px,env(safe-area-inset-left,0px));
+  flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.1)}
 #timer{font-size:1.75rem;font-weight:700;color:#FFB800;font-variant-numeric:tabular-nums;
   letter-spacing:2px;min-width:76px}
 #timer.red{color:#ff3b30;animation:blink .5s infinite alternate}
@@ -201,6 +203,7 @@ const VE=[[-1,1,-1,1],[1,-1,1,-1]];
 let pieces=[], tMap=new Map(), tOff=new Map();
 let snapped=0, tLeft=SECS, ticker=null, alive=false;
 let bX=0,bY=0,pW=0,pH=0,tab=0;
+let cvW=0, cvH=0; // logical canvas dimensions (CSS px)
 let logo=null, uploadedImg=null, raf=null;
 let gameMode='outside'; // 'outside' | 'inside'
 let showHints=false;
@@ -358,8 +361,12 @@ function seg(c2,x0,y0,x1,y1,dir,axis,ts){
 //  LAYOUT
 // ════════════════════════════════════════════
 function layout(){
+  const dpr=window.devicePixelRatio||1;
   const W=window.innerWidth, H=window.innerHeight-50;
-  cv.width=W; cv.height=H;
+  cvW=W; cvH=H;
+  cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+  cv.style.width=W+'px'; cv.style.height=H+'px';
+  cx.setTransform(dpr,0,0,dpr,0,0);
   const bW=Math.min(W*.48, H*.82*COLS/ROWS);
   const bH=bW*ROWS/COLS;
   pW=bW/COLS; pH=bH/ROWS;
@@ -379,7 +386,7 @@ function initPieces(){
 }
 
 function scatter(){
-  const W=cv.width, H=cv.height;
+  const W=cvW, H=cvH;
   const bboxW=pW+tab*2, bboxH=pH+tab*2;
   const pad=16;
 
@@ -434,8 +441,8 @@ function tgt(c,r){return{x:bX+c*pW-tab,y:bY+r*pH-tab};}
 // ════════════════════════════════════════════
 function render(){
   if(!alive)return;
-  cx.clearRect(0,0,cv.width,cv.height);
-  cx.fillStyle='#002510'; cx.fillRect(0,0,cv.width,cv.height);
+  cx.clearRect(0,0,cvW,cvH);
+  cx.fillStyle='#002510'; cx.fillRect(0,0,cvW,cvH);
 
   // Board outline rectangle (always visible)
   cx.save();
