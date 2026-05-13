@@ -542,6 +542,7 @@ function hit(x,y){
     if(p.snapped)continue;
     const e=getEdges(p.c,p.r);
     cx.save();
+    cx.setTransform(1,0,0,1,0,0); // identity: iOS Safari isPointInPath ignores CTM
     jigPath(cx,p.x+tab,p.y+tab,pW,pH,e,tab);
     const ok=cx.isPointInPath(x,y);
     cx.restore();
