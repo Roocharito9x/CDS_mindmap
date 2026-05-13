@@ -1,7 +1,9 @@
 # I.4 — Luật Dữ liệu (Luật số 60/2025/QH15)
 
 
-## Điều 1Phạm vi điều chỉnhDATA
+## Điều 1Phạm vi điều chỉnh
+
+Luật này quy định về dữ liệu số; xây dựng, phát triển, bảo vệ, quản trị, xử lý, sử dụng dữ liệu số; Trung tâm dữ liệu quốc gia; Cơ sở dữ liệu tổng hợp quốc gia; sản phẩm, dịch vụ về dữ liệu số; quản lý nhà nước về dữ liệu số; quyền, nghĩa vụ, trách nhiệm của cơ quan, tổ chức, cá nhân có liên quan đến hoạt động về dữ liệu số.
 
 ## Điều 2Đối tượng áp dụngDATA
 
@@ -89,6 +91,8 @@
 
 ## Điều 44Sửa đổi, bổ sung một số điều của các luật có liên quanDATA
 
-## Điều 45Hiệu lực thi hành Luật này có hiệu lực thi hành từ ngày 01 tháng 7 năm 2025.
+## Điều 45Hiệu lực thi hành
+
+Luật này có hiệu lực thi hành từ ngày 01 tháng 7 năm 2025.
 
 ## Điều 46Quy định chuyển tiếpDATA

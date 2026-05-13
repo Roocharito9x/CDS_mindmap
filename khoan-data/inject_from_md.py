@@ -11,13 +11,15 @@ HTML_PATH = os.path.join(os.path.dirname(__file__), '..', 'Mindmaps-on-thi-chuye
 MD_DIR = os.path.dirname(__file__)
 
 def parse_md(path):
-    """Parse a .md file into {art_num: {title, khoans: [{num, text, diems}]}}"""
+    """Parse a .md file into {art_num: {title, prefix, khoans: [{num, text, diems}]}}
+    Also returns dominant_prefix (most common prefix used in ## headers)."""
     with open(path, 'r', encoding='utf-8') as f:
         lines = f.readlines()
     articles = {}
     current_art = None
     current_khoan = None
-    pending_body = []  # plain-text lines before first numbered khoản
+    pending_body = []
+    prefix_counts = {}
 
     def flush_body():
         if pending_body and current_art in articles and not articles[current_art]['khoans']:
@@ -26,16 +28,27 @@ def parse_md(path):
                 articles[current_art]['khoans'].append({'num': 1, 'text': body, 'diems': []})
         pending_body.clear()
 
+    roman = {'I':1,'II':2,'III':3,'IV':4,'V':5,'VI':6,'VII':7,'VIII':8,'IX':9,'X':10,
+             'XI':11,'XII':12,'XIII':13,'XIV':14,'XV':15,'XVI':16,'XVII':17,'XVIII':18,'XIX':19,'XX':20}
+
+    PREFIX_RE = re.compile(r'^##\s+(Điều|Muc|Mục|Phần|Phan)\s+(\d+|[IVX]+)[.\s]?\s*(.*)')
+
     for line in lines:
         stripped = line.rstrip()
-        # Article header: ## Điều X. Title  OR  ## Mục X. Title
-        art_m = re.match(r'^##\s+(?:Điều|Muc|Mục|Phần|Phan)\s+(\d+)[.\s]\s*(.*)', stripped)
+        art_m = PREFIX_RE.match(stripped)
         if art_m:
             flush_body()
-            num = int(art_m.group(1))
-            title = art_m.group(2).strip()
+            prefix_raw = art_m.group(1)
+            raw_num = art_m.group(2)
+            num = roman.get(raw_num, None) if not raw_num.isdigit() else int(raw_num)
+            if num is None:
+                continue
+            # Normalise prefix for HTML matching
+            prefix = 'Điều' if prefix_raw in ('Điều',) else 'Mục' if prefix_raw in ('Muc', 'Mục') else 'Phần'
+            prefix_counts[prefix] = prefix_counts.get(prefix, 0) + 1
+            title = art_m.group(3).strip()
             current_art = num
-            articles[num] = {'title': title, 'khoans': []}
+            articles[num] = {'title': title, 'prefix': prefix, 'khoans': []}
             current_khoan = None
             pending_body.clear()
             continue
@@ -61,7 +74,10 @@ def parse_md(path):
             pending_body.append(stripped)
 
     flush_body()
-    return articles
+    # Dominant prefix = most common one used in this .md
+    dominant = max(prefix_counts, key=prefix_counts.get) if prefix_counts else 'Điều'
+    return articles, dominant
+
 
 def make_khoan_html(art_data):
     lines = ['<div class="khoan-list">']
@@ -81,7 +97,8 @@ def make_khoan_html(art_data):
     lines.append('</div>')
     return '\n'.join(lines)
 
-def inject_card(content, doc_id, articles, dry_run=False):
+
+def inject_card(content, doc_id, articles, dominant_prefix, dry_run=False):
     card_pat = re.compile(
         r'(<article[^>]+id="' + re.escape(doc_id) + r'"[^>]*>)(.*?)(</article>)',
         re.DOTALL)
@@ -93,11 +110,15 @@ def inject_card(content, doc_id, articles, dry_run=False):
     injected = [0]
     skipped = [0]
 
+    # Build a regex that matches ONLY the dominant prefix (to avoid cross-contamination)
+    prefix_re = re.compile(
+        r'<span class="article-num"[^>]*>(' + re.escape(dominant_prefix) + r')\s*(\d+)')
+
     def replace_article(m):
-        art_num_match = re.search(r'<span class="article-num"[^>]*>(?:Điều|Mục|Phần)\s*(\d+)', m.group(0))
-        if not art_num_match:
+        art_match = prefix_re.search(m.group(0))
+        if not art_match:
             return m.group(0)
-        art_num = int(art_num_match.group(1))
+        art_num = int(art_match.group(2))
         if art_num not in articles or not articles[art_num]['khoans']:
             skipped[0] += 1
             return m.group(0)
@@ -113,10 +134,47 @@ def inject_card(content, doc_id, articles, dry_run=False):
     print(f'  {doc_id}: {injected[0]} injected, {skipped[0]} no-khoản')
     return new_content, injected[0]
 
+
+def strip_wrong_injections(content, doc_id, keep_prefix):
+    """Remove khoan-list from articles whose article-num does NOT match keep_prefix."""
+    card_pat = re.compile(
+        r'(<article[^>]+id="' + re.escape(doc_id) + r'"[^>]*>)(.*?)(</article>)',
+        re.DOTALL)
+    card_match = card_pat.search(content)
+    if not card_match:
+        return content, 0
+    card_content = card_match.group(2)
+    stripped = [0]
+
+    def fix_article(m):
+        art_text = m.group(0)
+        if 'khoan-list' not in art_text:
+            return art_text
+        # Check if article-num prefix matches keep_prefix
+        num_m = re.search(r'<span class="article-num"[^>]*>(.*?)</span>', art_text)
+        if not num_m:
+            return art_text
+        label = num_m.group(1)
+        if keep_prefix in label:
+            return art_text  # correct injection, keep
+        # Remove khoan-list div
+        cleaned = re.sub(r'\n?<div class="khoan-list">.*?</div>\s*(?=</details>)', '', art_text, flags=re.DOTALL)
+        if cleaned != art_text:
+            stripped[0] += 1
+        return cleaned
+
+    new_card = re.sub(r'<details class="article"[^>]*>.*?</details>',
+                      fix_article, card_content, flags=re.DOTALL)
+    new_content = content[:card_match.start(2)] + new_card + content[card_match.end(2):]
+    print(f'  {doc_id}: stripped {stripped[0]} wrong injections (kept prefix={keep_prefix})')
+    return new_content, stripped[0]
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--doc', help='Only inject specific doc ID')
+    parser.add_argument('--cleanup', action='store_true', help='Strip wrong injections before re-injecting')
     args = parser.parse_args()
 
     with open(HTML_PATH, 'r', encoding='utf-8') as f:
@@ -132,13 +190,15 @@ def main():
         if '<!-- TODO' in open(md_path).read():
             print(f'  ⏭ {doc_id}: TODO, skipping')
             continue
-        articles = parse_md(md_path)
+        articles, dominant = parse_md(md_path)
         total_k = sum(len(a['khoans']) for a in articles.values())
         if not articles:
             print(f'  ⚠ {doc_id}: no articles parsed from .md')
             continue
-        print(f'  Parsing {doc_id}: {len(articles)} articles, {total_k} khoản')
-        content, n = inject_card(content, doc_id, articles, args.dry_run)
+        print(f'  Parsing {doc_id}: {len(articles)} articles ({dominant}), {total_k} khoản')
+        if args.cleanup:
+            content, _ = strip_wrong_injections(content, doc_id, dominant)
+        content, n = inject_card(content, doc_id, articles, dominant, args.dry_run)
         total += n
 
     if not args.dry_run:

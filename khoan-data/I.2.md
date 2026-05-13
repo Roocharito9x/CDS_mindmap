@@ -3,7 +3,9 @@
 
 ## Điều 1Phạm vi điều chỉnhPAYDIGITAL
 
-## Điều 2Đối tượng áp dụng Luật này áp dụng đối với cơ quan, tổ chức, cá nhân trực tiếp tham gia giao dịchPAYDIGITAL
+## Điều 2Đối tượng áp dụng
+
+Luật này áp dụng đối với cơ quan, tổ chức, cá nhân trực tiếp tham gia giao dịch điện tử hoặc có liên quan đến giao dịch điện tử.
 
 ## Điều 3Giải thích từ ngữ Trong Luật này, các từ ngữ dưới đây được hiểu như sau:PAYDATADIGITALINNOV
 
@@ -15,7 +17,9 @@
 
 ## Điều 7Hình thức thể hiện của thông điệp dữ liệuPAYDATADIGITAL
 
-## Điều 8Giá trị pháp lý của thông điệp dữ liệuDATA
+## Điều 8Giá trị pháp lý của thông điệp dữ liệu
+
+Thông tin trong thông điệp dữ liệu không bị phủ nhận giá trị pháp lý chỉ vì thông tin đó được thể hiện dưới dạng thông điệp dữ liệu.
 
 ## Điều 9Thông điệp dữ liệu có giá trị như văn bảnSECDATA
 
@@ -35,7 +39,9 @@
 
 ## Điều 17Thời điểm, địa điểm nhận thông điệp dữ liệuPAYSECDATA
 
-## Điều 18Gửi, nhận tự động thông điệp dữ liệuDATADIGITAL
+## Điều 18Gửi, nhận tự động thông điệp dữ liệu
+
+Trường hợp người khởi tạo hoặc người nhận chỉ định một hoặc nhiều hệ thống thông tin tự động gửi hoặc nhận thông điệp dữ liệu thì việc gửi, nhận thông điệp dữ liệu thực hiện theo quy định tại các điều 14, 15, 16 và 17 của Luật này.
 
 ## Điều 19Giá trị pháp lý của chứng thư điện tửSECDATADIGITAL
 
@@ -73,9 +79,13 @@
 
 ## Điều 36Nguyên tắc giao kết và thực hiện hợp đồng điện tửSECDATADIGITAL
 
-## Điều 37Việc nhận, gửi, thời điểm, địa điểm nhận, gửi thông điệp dữ liệuDATADIGITAL
+## Điều 37Việc nhận, gửi, thời điểm, địa điểm nhận, gửi thông điệp dữ liệu trong giao kết và thực hiện hợp đồng điện tử
 
-## Điều 38Giá trị pháp lý của thông báo trong giao kết và thực hiện hợpPAYDATADIGITAL
+Việc nhận, gửi, thời điểm, địa điểm nhận, gửi thông điệp dữ liệu trong giao kết và thực hiện hợp đồng điện tử được thực hiện theo quy định tại các điều 15, 16, 17 và 18 của Luật này.
+
+## Điều 38Giá trị pháp lý của thông báo trong giao kết và thực hiện hợp đồng điện tử
+
+Trong giao kết và thực hiện hợp đồng điện tử, thông báo dưới dạng thông điệp dữ liệu có giá trị pháp lý như thông báo bằng văn bản giấy.
 
 ## Điều 39Các loại hình giao dịch điện tử của cơ quan nhà nướcPAYDIGITAL
 

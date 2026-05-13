@@ -4,6 +4,7 @@
 ## Điều 1Phạm vi điều chỉnhDATA
 
 ## Điều 2Đối tượng áp dụng
+Nghị định này áp dụng đối với cơ quan hành chính nhà nước, người có thẩm quyền, tổ chức, cá nhân trong hoạt động kiểm soát thủ tục hành chính.
 
 ## Điều 3Giải thích từ ngữ Trong Nghị định này, các từ ngữ dưới đây được hiểu như sau:DATADIGITAL
 
@@ -32,6 +33,7 @@
 ## Điều 15Quyết định công bố thủ tục hành chínhDATA
 
 ## Điều 16Công khai thủ tục hành chínhDATA
+Thông tin về thủ tục hành chính đã được người có thẩm quyền công bố theo quy định tại Điều 15 của Nghị định này phải được công khai đầy đủ, thường xuyên, rõ ràng, đúng địa chỉ, dễ tiếp cận, dễ khai thác, sử dụng và phải được đăng tải trên Cơ sở dữ liệu quốc gia về thủ tục hành chính.
 
 ## Điều 17Hình thức công khaiDATADIGITAL
 
@@ -46,10 +48,13 @@
 ## Điều 22Phản ánh, kiến nghị về thủ tục hành chính trong quá trình thực hiệnDATA
 
 ## Điều 23Điều kiện đăng tải thủ tục hành chính trên Cơ sở dữ liệu quốc gia về thủ tục hành chínhDATA
+Thủ tục hành chính được đăng tải trên Cơ sở dữ liệu quốc gia là các thủ tục hành chính được Bộ trưởng, Thủ trưởng cơ quan ngang Bộ, Chủ tịch Ủy ban nhân dân tỉnh, thành phố trực thuộc Trung ương công bố theo quy định tại các Điều 13, 14 và 15 của Nghị định này.
 
 ## Điều 24Nhập dữ liệu thủ tục hành chính đã công bốDATA
+Bộ trưởng, Thủ trưởng cơ quan ngang Bộ, Chủ tịch Ủy ban nhân dân tỉnh, thành phố trực thuộc Trung ương chịu trách nhiệm tổ chức việc nhập các thủ tục hành chính và văn bản quy định về thủ tục hành chính đã được công bố vào Cơ sở dữ liệu quốc gia về thủ tục hành chính và gửi Cơ quan kiểm soát thủ tục hành chính chậm nhất trong thời hạn 05 (năm) ngày làm việc kể từ ngày ký quyết định công bố; đồng t
 
 ## Điều 25Giá trị của thủ tục hành chính và văn bản quy phạm pháp luật có quy định về thủ tục hành chính trên Cơ sở dữ liệu quốc giaDATA
+Thủ tục hành chính và các văn bản quy định về thủ tục hành chính hoặc văn bản có liên quan về thủ tục hành chính được đăng tải trên Cơ sở dữ liệu quốc gia về thủ tục hành chính có giá trị thi hành và được bảo đảm thi hành. Mẫu đơn, mẫu tờ khai hành chính đăng tải kèm theo thủ tục hành chính trên Cơ sở dữ liệu quốc gia về thủ tục hành chính có giá trị ngang bằng với mẫu đơn, mẫu tờ khai hành chính 
 
 ## Điều 26Trách nhiệm quản lý Cơ sở dữ liệu quốc gia về thủ tục hành chínhDATADIGITAL
 
@@ -66,6 +71,7 @@
 ## Điều 32Khen thưởng trong thực hiện kiểm soát thủ tục hành chính
 
 ## Điều 33Xử lý vi phạm
+Cơ quan, tổ chức, cá nhân vi phạm các quy định của Nghị định này, thì tùy theo tính chất, mức độ vi phạm mà bị xử lý theo quy định của pháp luật.
 
 ## Điều 34Điều kiện đảm bảo về kinh phí thực hiện kiểm soát thủ tục hành chính
 
