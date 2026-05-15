@@ -758,8 +758,9 @@
       </div>
       <div class="q-meta">
         <span class="q-position" id="qPosition">Câu 1 / 10</span>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button onclick="cancelTest()" style="height:32px;padding:0 12px;border-radius:var(--radius-round);border:1.5px solid var(--neutral-300);background:var(--white);color:var(--neutral-600);font-size:12px;font-weight:500;cursor:pointer;">✕ Huỷ test</button>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button id="cancelOrFinishBtn" onclick="cancelTest()" style="height:32px;padding:0 12px;border-radius:var(--radius-round);border:1.5px solid var(--neutral-300);background:var(--white);color:var(--neutral-600);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;">✕ Huỷ test</button>
+          <button id="nextBtn" onclick="goNext()" style="height:32px;padding:0 14px;border-radius:var(--radius-round);border:none;background:var(--brand-500);color:var(--white);font-size:12px;font-weight:600;cursor:pointer;transition:background 0.2s;">Tiếp →</button>
         <div class="timer-wrap">
           <div class="timer-ring">
             <svg>
@@ -996,6 +997,20 @@ function showQuestion() {
   });
 
   document.getElementById('scoreInfo').style.display = 'none';
+
+  // update cancel/finish button label on last question
+  const isLast = currentIdx === testQuestions.length - 1;
+  const cancelBtn = document.getElementById('cancelOrFinishBtn');
+  if (isLast) {
+    cancelBtn.textContent = '✓ Hoàn thành';
+    cancelBtn.style.borderColor = 'var(--brand-500)';
+    cancelBtn.style.color = 'var(--brand-500)';
+  } else {
+    cancelBtn.textContent = '✕ Huỷ test';
+    cancelBtn.style.borderColor = 'var(--neutral-300)';
+    cancelBtn.style.color = 'var(--neutral-600)';
+  }
+
   startTimer();
 }
 
@@ -1153,6 +1168,29 @@ function retryTest() {
     }
   }
   showQuestion();
+}
+
+function goNext() {
+  clearInterval(timer);
+  if (selectedAnswer !== null) {
+    const q = testQuestions[currentIdx];
+    const isCorrect = selectedAnswer === q.answer;
+    let pts = 0;
+    if (isCorrect) {
+      if (lastElapsed <= 5)       pts = 2;
+      else if (lastElapsed <= 10) pts = 1.5;
+      else                        pts = 1;
+    }
+    results.push({ q, key: selectedAnswer, isCorrect, pts, elapsed: lastElapsed });
+  } else {
+    results.push({ q: testQuestions[currentIdx], key: null, isCorrect: false, pts: 0, elapsed: 15 });
+  }
+  currentIdx++;
+  if (currentIdx >= testQuestions.length) {
+    showResult();
+  } else {
+    showQuestion();
+  }
 }
 
 function cancelTest() {
