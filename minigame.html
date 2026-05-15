@@ -144,6 +144,11 @@ html,body{width:100vw;height:100vh;height:100dvh;overflow:hidden;background:#003
       <span class="mode-name">Kiểu 2 · Trong</span>
       <span class="mode-desc">Mảnh trộn trong<br>khung hình</span>
     </button>
+    <button class="mode-btn" id="btn-sw" onclick="setMode('swap')">
+      <span class="mode-icon">🔀</span>
+      <span class="mode-name">Kiểu 3 · Hoán đổi</span>
+      <span class="mode-desc">Kéo 2 mảnh đổi chỗ<br>ít lần nhất có thể</span>
+    </button>
   </div>
 
   <button class="btn btn-gold" id="start-btn" onclick="startGame()" disabled>▶&nbsp; BẮT ĐẦU</button>
@@ -168,6 +173,7 @@ html,body{width:100vw;height:100vh;height:100dvh;overflow:hidden;background:#003
     <div class="em">🎉</div>
     <h1>Chúc Mừng!</h1>
     <p>Cả 2 người chơi đã hoàn thành puzzle!</p>
+    <p id="win-swap" style="color:#006633;font-weight:700;font-size:1rem;margin:2px 0 4px"></p>
     <div class="tdisp" id="win-time"></div>
     <button class="btn btn-gold" onclick="reset()">🔄&nbsp; CHƠI LẠI</button>
   </div>
@@ -200,12 +206,13 @@ const VE=[[-1,1,-1,1],[1,-1,1,-1]];
 // ════════════════════════════════════════════
 //  STATE
 // ════════════════════════════════════════════
-let pieces=[], tMap=new Map(), tOff=new Map();
-let snapped=0, tLeft=SECS, ticker=null, alive=false;
+let pieces=[], tMap=new Map(), tOff=new Map(), tOrigPos=new Map();
+let snapped=0, swapCount=0, swapHoverIdx=-1;
+let tLeft=SECS, ticker=null, alive=false;
 let bX=0,bY=0,pW=0,pH=0,tab=0;
 let cvW=0, cvH=0; // logical canvas dimensions (CSS px)
 let logo=null, uploadedImg=null, raf=null;
-let gameMode='outside'; // 'outside' | 'inside'
+let gameMode='outside'; // 'outside' | 'inside' | 'swap'
 let showHints=false;
 
 const cv=document.getElementById('cv');
@@ -279,6 +286,7 @@ function setMode(m){
   gameMode=m;
   document.getElementById('btn-out').classList.toggle('sel',m==='outside');
   document.getElementById('btn-in').classList.toggle('sel',m==='inside');
+  document.getElementById('btn-sw').classList.toggle('sel',m==='swap');
 }
 
 // Drag-and-drop on upload zone
@@ -434,6 +442,25 @@ function scatterInside(){
   });
 }
 
+// Swap mode: pieces fill exact grid cells, shuffled
+function scatterSwap(){
+  const pos=[];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) pos.push(tgt(c,r));
+  // Shuffle until at least one piece differs from its target
+  let ok=false;
+  while(!ok){
+    for(let i=pos.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [pos[i],pos[j]]=[pos[j],pos[i]];
+    }
+    ok=pieces.some((p,i)=>{
+      const tp=tgt(p.c,p.r);
+      return Math.abs(pos[i].x-tp.x)>1||Math.abs(pos[i].y-tp.y)>1;
+    });
+  }
+  pieces.forEach((p,i)=>{p.x=pos[i].x;p.y=pos[i].y;p.snapped=false;p.z=i;});
+}
+
 function tgt(c,r){return{x:bX+c*pW-tab,y:bY+r*pH-tab};}
 
 // ════════════════════════════════════════════
@@ -531,6 +558,29 @@ function drawPiece(p){
     if(p._flash<=0)delete p._flash;
     cx.restore();
   }
+
+  // Swap mode: gold highlight on hover target
+  if(gameMode==='swap'&&pieces.indexOf(p)===swapHoverIdx&&!dragged){
+    cx.save();
+    jigPath(cx,px,py,pW,pH,e,tab);
+    cx.fillStyle='rgba(255,200,0,.28)'; cx.fill();
+    cx.strokeStyle='rgba(255,200,0,.95)'; cx.lineWidth=3;
+    cx.shadowColor='rgba(255,200,0,.8)'; cx.shadowBlur=14;
+    cx.stroke();
+    cx.restore();
+  }
+
+  // Swap mode: green border on correctly placed piece
+  if(gameMode==='swap'&&!dragged){
+    const tp=tgt(p.c,p.r);
+    if(Math.abs(p.x-tp.x)<2&&Math.abs(p.y-tp.y)<2){
+      cx.save();
+      jigPath(cx,px,py,pW,pH,e,tab);
+      cx.strokeStyle='rgba(50,210,90,.9)'; cx.lineWidth=2.5;
+      cx.stroke();
+      cx.restore();
+    }
+  }
 }
 
 // ════════════════════════════════════════════
@@ -558,11 +608,13 @@ function rc(t){const r=cv.getBoundingClientRect();return[t.clientX-r.left,t.clie
 
 cv.addEventListener('touchstart',e=>{
   e.preventDefault();
+  if(!alive)return;
   for(const t of e.changedTouches){
     const[x,y]=rc(t),idx=hit(x,y);
     if(idx<0)continue;
     tMap.set(t.identifier,idx);
     tOff.set(t.identifier,{dx:x-pieces[idx].x,dy:y-pieces[idx].y});
+    if(gameMode==='swap')tOrigPos.set(idx,{x:pieces[idx].x,y:pieces[idx].y});
     front(idx);
   }
 },{passive:false});
@@ -574,6 +626,7 @@ cv.addEventListener('touchmove',e=>{
     if(idx===undefined)continue;
     const[x,y]=rc(t),off=tOff.get(t.identifier);
     pieces[idx].x=x-off.dx; pieces[idx].y=y-off.dy;
+    if(gameMode==='swap')swapHoverIdx=nearestGridPiece(idx);
   }
 },{passive:false});
 
@@ -581,7 +634,7 @@ cv.addEventListener('touchend',e=>{
   e.preventDefault();
   for(const t of e.changedTouches){
     const idx=tMap.get(t.identifier);
-    if(idx!==undefined)snap(idx);
+    if(idx!==undefined) gameMode==='swap' ? swapRelease(idx) : snap(idx);
     tMap.delete(t.identifier); tOff.delete(t.identifier);
   }
 },{passive:false});
@@ -596,15 +649,17 @@ cv.addEventListener('mousedown',e=>{
   const[x,y]=rc(e); midx=hit(x,y);
   if(midx<0)return; mdn=true;
   moff={dx:x-pieces[midx].x,dy:y-pieces[midx].y};
+  if(gameMode==='swap')tOrigPos.set(midx,{x:pieces[midx].x,y:pieces[midx].y});
   front(midx);
 });
 window.addEventListener('mousemove',e=>{
   if(!mdn||midx<0)return;
   const[x,y]=rc(e);
   pieces[midx].x=x-moff.dx; pieces[midx].y=y-moff.dy;
+  if(gameMode==='swap')swapHoverIdx=nearestGridPiece(midx);
 });
 window.addEventListener('mouseup',()=>{
-  if(mdn&&midx>=0)snap(midx);
+  if(mdn&&midx>=0) gameMode==='swap' ? swapRelease(midx) : snap(midx);
   mdn=false; midx=-1;
 });
 
@@ -627,6 +682,49 @@ function snap(i){
 }
 
 // ════════════════════════════════════════════
+//  SWAP MODE HELPERS
+// ════════════════════════════════════════════
+function nearestGridPiece(dragIdx){
+  const p=pieces[dragIdx];
+  const pcx=p.x+tab+pW/2, pcy=p.y+tab+pH/2;
+  const gc=Math.floor((pcx-bX)/pW), gr=Math.floor((pcy-bY)/pH);
+  if(gc<0||gc>=COLS||gr<0||gr>=ROWS)return -1;
+  const tp=tgt(gc,gr);
+  const dragging=new Set(tMap.values());
+  for(let i=0;i<pieces.length;i++){
+    if(i===dragIdx||dragging.has(i))continue;
+    if(Math.abs(pieces[i].x-tp.x)<2&&Math.abs(pieces[i].y-tp.y)<2)return i;
+  }
+  return -1;
+}
+
+function swapRelease(idx){
+  const target=nearestGridPiece(idx);
+  if(target>=0){
+    const orig=tOrigPos.get(idx)||{x:pieces[idx].x,y:pieces[idx].y};
+    const tx=pieces[target].x, ty=pieces[target].y;
+    pieces[idx].x=tx; pieces[idx].y=ty;
+    pieces[target].x=orig.x; pieces[target].y=orig.y;
+    pieces[idx]._flash=0.6; pieces[target]._flash=0.6;
+    swapCount++;
+    document.getElementById('prog').textContent='🔀 '+swapCount;
+    checkSwapWin();
+  }else{
+    const orig=tOrigPos.get(idx);
+    if(orig){pieces[idx].x=orig.x;pieces[idx].y=orig.y;}
+  }
+  tOrigPos.delete(idx);
+  swapHoverIdx=-1;
+}
+
+function checkSwapWin(){
+  if(pieces.every(p=>{
+    const tp=tgt(p.c,p.r);
+    return Math.abs(p.x-tp.x)<2&&Math.abs(p.y-tp.y)<2;
+  }))win();
+}
+
+// ════════════════════════════════════════════
 //  TIMER
 // ════════════════════════════════════════════
 function tickDisp(){
@@ -644,13 +742,15 @@ function startGame(){
   document.getElementById('game').classList.add('on');
   layout();
   logo=buildLogoCanvas(Math.round(pW*COLS*1.6), Math.round(pH*ROWS*1.6));
-  document.getElementById('hudtitle').textContent=
-    gameMode==='inside'?'🧩 Kiểu 2 · Trong':'🧩 Kiểu 1 · Ngoài';
+  const modeLabel={outside:'🧩 Kiểu 1 · Ngoài',inside:'🧩 Kiểu 2 · Trong',swap:'🔀 Kiểu 3 · Hoán đổi'};
+  document.getElementById('hudtitle').textContent=modeLabel[gameMode]||'🧩 BIDV Jigsaw';
   initPieces();
-  gameMode==='inside' ? scatterInside() : scatter();
-  snapped=0; tLeft=SECS; alive=true;
+  if(gameMode==='swap') scatterSwap();
+  else if(gameMode==='inside') scatterInside();
+  else scatter();
+  snapped=0; swapCount=0; swapHoverIdx=-1; tOrigPos.clear(); tLeft=SECS; alive=true;
   showHints=false; document.getElementById('hint-btn').classList.remove('on');
-  document.getElementById('prog').textContent='0 / '+N;
+  document.getElementById('prog').textContent=gameMode==='swap'?'🔀 0':('0 / '+N);
   tickDisp();
   ticker=setInterval(()=>{tLeft--;tickDisp();if(tLeft<=0)lose();},1000);
   render();
@@ -661,18 +761,23 @@ function win(){
   const el=SECS-tLeft;
   document.getElementById('win-time').textContent=
     `⏱ ${String(Math.floor(el/60)).padStart(2,'0')}:${String(el%60).padStart(2,'0')}`;
+  document.getElementById('win-swap').textContent=
+    gameMode==='swap'?`🔀 ${swapCount} lần hoán đổi`:'';
   document.getElementById('ov-win').classList.remove('hide');
 }
 
 function lose(){
   alive=false; clearInterval(ticker); cancelAnimationFrame(raf);
-  document.getElementById('lose-msg').textContent=`Đã xếp được ${snapped} / ${N} mảnh`;
+  const msg=gameMode==='swap'
+    ?`Đã hoán đổi ${swapCount} lần, chưa hoàn thành`
+    :`Đã xếp được ${snapped} / ${N} mảnh`;
+  document.getElementById('lose-msg').textContent=msg;
   document.getElementById('ov-lose').classList.remove('hide');
 }
 
 function reset(){
   alive=false; clearInterval(ticker); cancelAnimationFrame(raf);
-  tMap.clear(); tOff.clear();
+  tMap.clear(); tOff.clear(); tOrigPos.clear(); swapHoverIdx=-1;
   document.getElementById('ov-win').classList.add('hide');
   document.getElementById('ov-lose').classList.add('hide');
   document.getElementById('game').classList.remove('on');
