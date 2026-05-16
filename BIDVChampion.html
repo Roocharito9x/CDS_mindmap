@@ -655,9 +655,90 @@
     .question-list { padding: 12px; }
     .test-container { padding: 12px; }
   }
+
+  /* ── LOGIN SCREEN ── */
+  #loginOverlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(135deg, #004240 0%, #006b68 50%, #37adaa 100%);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 40px 32px;
+    width: 100%; max-width: 380px;
+    box-shadow: 0px 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  .login-logo {
+    width: 64px; height: 64px;
+    background: var(--brand-500);
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 28px; font-weight: 900; color: white;
+    letter-spacing: -1px;
+  }
+  .login-title {
+    font-size: 22px; font-weight: 700;
+    color: var(--neutral-900); margin-bottom: 4px;
+  }
+  .login-sub {
+    font-size: 13px; color: var(--neutral-500); margin-bottom: 28px;
+  }
+  .login-input-wrap { position: relative; margin-bottom: 16px; }
+  .login-input {
+    width: 100%; height: 48px;
+    border: 2px solid var(--neutral-200);
+    border-radius: var(--radius-l);
+    padding: 0 44px 0 14px;
+    font-size: 15px; outline: none;
+    transition: border-color 0.2s;
+    font-family: 'Roboto', sans-serif;
+  }
+  .login-input:focus { border-color: var(--brand-500); }
+  .login-input.error { border-color: var(--red-700); }
+  .login-eye {
+    position: absolute; right: 12px; top: 50%;
+    transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--neutral-400); font-size: 18px; padding: 0;
+    line-height: 1;
+  }
+  .login-btn {
+    width: 100%; height: 48px;
+    background: var(--brand-500); color: white;
+    border: none; border-radius: var(--radius-l);
+    font-size: 16px; font-weight: 700;
+    cursor: pointer; transition: background 0.2s;
+    font-family: 'Roboto', sans-serif;
+  }
+  .login-btn:hover { background: var(--brand-600); }
+  .login-error {
+    font-size: 13px; color: var(--red-700);
+    margin-top: 10px; display: none;
+  }
 </style>
 </head>
 <body>
+
+<!-- ══════════════ LOGIN OVERLAY ══════════════ -->
+<div id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">B</div>
+    <div class="login-title">BIDV Champion</div>
+    <div class="login-sub">Nhập mật khẩu để truy cập hệ thống</div>
+    <div class="login-input-wrap">
+      <input class="login-input" id="loginInput" type="password"
+        placeholder="Nhập mật khẩu..."
+        onkeydown="if(event.key==='Enter') doLogin()">
+      <button class="login-eye" id="eyeBtn" onclick="toggleEye()" title="Hiện/ẩn mật khẩu">👁</button>
+    </div>
+    <button class="login-btn" onclick="doLogin()">Đăng nhập</button>
+    <div class="login-error" id="loginError">Mật khẩu không đúng. Vui lòng thử lại.</div>
+  </div>
+</div>
 
 <div class="topnav">
   <div class="topnav-logo">
@@ -727,6 +808,7 @@
             <button class="count-btn" onclick="selectCount(20)">20 câu</button>
             <button class="count-btn" onclick="selectCount(50)">50 câu</button>
             <button class="count-btn" onclick="selectCount(100)">100 câu</button>
+            <button class="count-btn" onclick="selectCount(400)">Tất cả (400)</button>
           </div>
         </div>
         <div class="setup-section">
@@ -924,7 +1006,8 @@ function selectShowAnswer(val) {
 function selectCount(n) {
   customCount = n;
   document.querySelectorAll('.count-btn').forEach(b => {
-    b.classList.toggle('selected', b.textContent.startsWith(n + ' '));
+    const val = parseInt(b.textContent);
+    b.classList.toggle('selected', val === n);
   });
 }
 
@@ -1216,6 +1299,31 @@ function cancelTest() {
 function backToSetup() {
   clearInterval(timer);
   showScreen('setup');
+}
+
+// ── LOGIN ──
+function doLogin() {
+  const input = document.getElementById('loginInput');
+  const errEl = document.getElementById('loginError');
+  if (input.value === 'DacBiet@2026') {
+    document.getElementById('loginOverlay').style.display = 'none';
+    input.value = '';
+  } else {
+    input.classList.add('error');
+    errEl.style.display = 'block';
+    input.focus();
+    setTimeout(() => { input.classList.remove('error'); }, 600);
+  }
+}
+
+function toggleEye() {
+  const input = document.getElementById('loginInput');
+  const btn = document.getElementById('eyeBtn');
+  if (input.type === 'password') {
+    input.type = 'text'; btn.textContent = '🙈';
+  } else {
+    input.type = 'password'; btn.textContent = '👁';
+  }
 }
 
 // ── INIT ──
