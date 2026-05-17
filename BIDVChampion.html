@@ -1021,6 +1021,31 @@
   padding: 5px 10px;
   border-top: 2px solid var(--brand-200, #99cccb);
 }
+
+/* ── COMBO ── */
+.combo-picker-screen { padding: 4px 0 20px; }
+.combo-header { text-align:center; padding: 16px 0 18px; }
+.combo-title { font-size:20px; font-weight:700; color:var(--neutral-800); }
+.combo-subtitle { font-size:13px; color:var(--neutral-500); margin:4px 0 10px; }
+.combo-meta { font-size:13px; color:var(--neutral-600); display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+.combo-reset-btn { padding:5px 14px; border-radius:var(--radius-round); border:1.5px solid var(--brand-500); background:transparent; color:var(--brand-500); font-size:12px; font-weight:600; cursor:pointer; transition:all .2s; }
+.combo-reset-btn:hover { background:var(--brand-500); color:#fff; }
+.combo-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+@media(max-width:600px){ .combo-grid { grid-template-columns:repeat(2,1fr); } }
+.combo-set-card { border:1.5px solid var(--neutral-200); border-radius:var(--radius-l); padding:14px 10px; text-align:center; cursor:pointer; transition:all .18s; background:var(--white); user-select:none; }
+.combo-set-card:hover { border-color:var(--brand-400); box-shadow:0 3px 10px rgba(0,107,104,.12); transform:translateY(-2px); }
+.combo-set-card.done { background:#f0faf9; border-color:var(--brand-300); }
+.combo-set-card.current { border-color:var(--brand-500); box-shadow:0 0 0 2px rgba(0,107,104,.18); }
+.combo-set-num { font-size:15px; font-weight:700; color:var(--neutral-800); margin-bottom:2px; }
+.combo-set-card.current .combo-set-num { color:var(--brand-600); }
+.combo-set-card.done .combo-set-num { color:var(--brand-700); }
+.combo-set-count { font-size:11px; color:var(--neutral-400); margin-bottom:6px; }
+.combo-set-status { font-size:11px; font-weight:600; color:var(--neutral-400); }
+.combo-set-card.done .combo-set-status { color:var(--brand-600); }
+.combo-set-card.current .combo-set-status { color:var(--brand-500); }
+.btn-success { padding:10px 20px; border-radius:var(--radius-round); border:none; background:#059669; color:#fff; font-size:14px; font-weight:600; cursor:pointer; transition:background .2s; display:inline-flex; align-items:center; gap:6px; }
+.btn-success:hover { background:#047857; }
+
 </style>
 </head>
 <body>
@@ -1091,6 +1116,11 @@
             <div class="mode-card-icon">⚙️</div>
             <div class="mode-card-title">Tuỳ chỉnh</div>
             <div class="mode-card-desc">Chọn số lượng & thứ tự</div>
+          </div>
+          <div class="mode-card" id="mode-combo" onclick="selectMode('combo')">
+            <div class="mode-card-icon">🎯</div>
+            <div class="mode-card-title">Combo 20 Bộ</div>
+            <div class="mode-card-desc">Chia 400 câu → 20 bộ × 20 câu</div>
           </div>
         </div>
       </div>
@@ -1212,12 +1242,27 @@
         </div>
         <div class="result-actions">
           <button class="btn-primary" onclick="retryTest()">🔄 Thi lại</button>
+          <button id="backToComboBtn" class="btn-success" onclick="backToCombo()" style="display:none">📋 Về chọn bộ</button>
           <button class="btn-outline" onclick="backToSetup()">⚙️ Cấu hình lại</button>
         </div>
       </div>
 
       <div class="section-header">📖 Chi tiết từng câu</div>
       <div class="review-list" id="reviewList"></div>
+    </div>
+
+    <!-- COMBO PICKER -->
+    <div class="combo-picker-screen" id="comboPickerScreen" style="display:none">
+      <div class="combo-header">
+        <div class="combo-title">🎯 Combo 20 Bộ</div>
+        <div class="combo-subtitle">400 câu · Mỗi bộ 20 câu ngẫu nhiên, không trùng nhau</div>
+        <div class="combo-meta">
+          Đã hoàn thành: <strong id="comboDoneCount">0</strong> / 20 bộ
+          &nbsp;·&nbsp;
+          <button class="combo-reset-btn" onclick="resetCombo()">🔀 Random lại</button>
+        </div>
+      </div>
+      <div class="combo-grid" id="comboGrid"></div>
     </div>
 
   </div>
@@ -1314,6 +1359,9 @@ let customCount = 10;
 let customOrder = 'sequential';
 let showAnswer = true;
 let testQuestions = [];
+let comboSets = [];
+let comboSetsDone = [];
+let comboCurrentSet = -1;
 let currentIdx = 0;
 let timer = null;
 let timeLeft = 15;
@@ -1379,6 +1427,7 @@ function selectMode(m) {
   mode = m;
   document.getElementById('mode-random10').classList.toggle('selected', m === 'random10');
   document.getElementById('mode-custom').classList.toggle('selected', m === 'custom');
+  document.getElementById('mode-combo').classList.toggle('selected', m === 'combo');
   document.getElementById('customOptions').style.display = m === 'custom' ? 'block' : 'none';
 }
 
@@ -1416,6 +1465,12 @@ function shuffle(arr) {
 }
 
 function startTest() {
+  if (mode === 'combo') {
+    if (comboSets.length === 0) generateComboSets();
+    showScreen('combo-picker');
+    renderComboPicker();
+    return;
+  }
   let pool = [...ALL_QUESTIONS];
   let count;
   if (mode === 'random10') {
@@ -1439,6 +1494,7 @@ function showScreen(s) {
   document.getElementById('setupScreen').style.display = s === 'setup' ? 'block' : 'none';
   document.getElementById('questionScreen').style.display = s === 'question' ? 'block' : 'none';
   document.getElementById('resultScreen').style.display = s === 'result' ? 'block' : 'none';
+  document.getElementById('comboPickerScreen').style.display = s === 'combo-picker' ? 'block' : 'none';
 }
 
 function showQuestion() {
@@ -1582,6 +1638,11 @@ function nextQuestion() {
 // ── RESULT ──
 function showResult() {
   showScreen('result');
+  // Combo: mark current set done
+  if (mode === 'combo' && comboCurrentSet >= 0) {
+    comboSetsDone[comboCurrentSet] = true;
+  }
+  document.getElementById('backToComboBtn').style.display = mode === 'combo' ? 'inline-flex' : 'none';
   const total = results.length;
   const totalScore = results.reduce((s, r) => s + r.pts, 0);
   const maxScore = total * 2;
@@ -1684,6 +1745,54 @@ function cancelTest() {
 function backToSetup() {
   clearInterval(timer);
   showScreen('setup');
+}
+
+// ── COMBO ──────────────────────────────────────────────────────────────────
+function generateComboSets() {
+  const shuffled = shuffle([...ALL_QUESTIONS]);
+  comboSets = [];
+  for (let i = 0; i < 20; i++) {
+    comboSets.push(shuffled.slice(i * 20, (i + 1) * 20));
+  }
+  comboSetsDone = new Array(20).fill(false);
+  comboCurrentSet = -1;
+}
+
+function renderComboPicker() {
+  const done = comboSetsDone.filter(Boolean).length;
+  document.getElementById('comboDoneCount').textContent = done;
+  document.getElementById('comboGrid').innerHTML = comboSets.map((_, i) => {
+    const isDone = comboSetsDone[i];
+    const isCur  = comboCurrentSet === i && !isDone;
+    const cls    = isDone ? 'done' : (isCur ? 'current' : '');
+    const status = isDone ? '✅ Hoàn thành' : (isCur ? '▶ Đang làm' : '⭕ Chưa làm');
+    return `<div class="combo-set-card ${cls}" onclick="startComboSet(${i})">
+      <div class="combo-set-num">Bộ ${i + 1}</div>
+      <div class="combo-set-count">20 câu</div>
+      <div class="combo-set-status">${status}</div>
+    </div>`;
+  }).join('');
+}
+
+function startComboSet(i) {
+  comboCurrentSet = i;
+  testQuestions = [...comboSets[i]];
+  results = [];
+  currentIdx = 0;
+  showScreen('question');
+  showQuestion();
+}
+
+function backToCombo() {
+  clearInterval(timer);
+  showScreen('combo-picker');
+  renderComboPicker();
+}
+
+function resetCombo() {
+  if (!confirm('Random lại sẽ xoá toàn bộ tiến độ combo hiện tại. Tiếp tục?')) return;
+  generateComboSets();
+  renderComboPicker();
 }
 
 // ── LOGIN ──
