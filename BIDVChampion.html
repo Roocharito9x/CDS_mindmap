@@ -1049,25 +1049,10 @@
 
 /* ── FC TEST ── */
 .fc-combo-desc { font-size:13px; color:var(--neutral-600); background:var(--neutral-50); border-radius:var(--radius-l); padding:10px 14px; margin-bottom:4px; line-height:1.6; }
-.fc-test-body { padding-top: 4px; }
+.fc-test-body { padding-top:4px; }
 .fc-test-card { background:var(--white); border:1.5px solid var(--neutral-200); border-radius:var(--radius-l); padding:18px 16px; margin-bottom:14px; display:flex; flex-direction:column; gap:8px; }
 .fc-test-question { font-size:16px; font-weight:600; color:var(--neutral-800); line-height:1.55; }
-.fc-test-input-wrap { display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
-.fc-test-input { width:100%; padding:11px 13px; border:1.5px solid var(--neutral-200); border-radius:var(--radius-l); font-size:14px; color:var(--neutral-800); resize:vertical; min-height:72px; transition:border-color .2s; font-family:inherit; box-sizing:border-box; }
-.fc-test-input:focus { outline:none; border-color:var(--brand-400); box-shadow:0 0 0 3px rgba(0,107,104,.08); }
-.fc-test-input:disabled { background:var(--neutral-50); }
-.fc-test-submit-btn { align-self:flex-end; padding:10px 24px; border-radius:var(--radius-round); border:none; background:var(--brand-500); color:#fff; font-size:14px; font-weight:600; cursor:pointer; transition:background .2s; }
-.fc-test-submit-btn:hover { background:var(--brand-600,#005a57); }
-.fc-test-submit-btn:disabled { background:var(--neutral-300); cursor:default; }
-.fc-test-reveal { margin-bottom:14px; }
-.fc-test-ans-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
-@media(max-width:500px){ .fc-test-ans-row { grid-template-columns:1fr; } }
-.fc-test-ans-box { border-radius:var(--radius-l); padding:13px 14px; border:1.5px solid var(--neutral-200); }
-.fc-test-ans-box.user { background:#fffbeb; border-color:#f59e0b; }
-.fc-test-ans-box.correct { background:#f0fdf4; border-color:#22c55e; }
-.fc-test-ans-label { font-size:10px; font-weight:700; color:var(--neutral-500); text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
-.fc-test-ans-text { font-size:14px; color:var(--neutral-800); font-weight:500; white-space:pre-wrap; line-height:1.5; }
-.fc-test-judge-row { display:flex; gap:12px; justify-content:center; }
+
 
 </style>
 </head>
@@ -1198,7 +1183,6 @@
         <span class="q-position" id="qPosition">Câu 1 / 10</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <button id="cancelOrFinishBtn" onclick="cancelTest()" style="height:32px;padding:0 12px;border-radius:var(--radius-round);border:1.5px solid var(--neutral-300);background:var(--white);color:var(--neutral-600);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.2s;">✕ Huỷ test</button>
-          <button id="nextBtn" onclick="goNext()" style="height:32px;padding:0 14px;border-radius:var(--radius-round);border:none;background:var(--brand-500);color:var(--white);font-size:12px;font-weight:600;cursor:pointer;transition:background 0.2s;">Tiếp →</button>
         <div class="timer-wrap">
           <div class="timer-ring">
             <svg>
@@ -1239,6 +1223,9 @@
       <div class="score-info" id="scoreInfo" style="display:none;">
         <span id="scoreMsg"></span>
         <span class="score-badge" id="scorePts"></span>
+      </div>
+      <div style="text-align:center;margin-top:14px;">
+        <button id="nextBtn" onclick="goNext()" style="height:44px;padding:0 36px;border-radius:var(--radius-round);border:none;background:var(--brand-500);color:var(--white);font-size:15px;font-weight:700;cursor:pointer;letter-spacing:0.3px;transition:background 0.2s;width:100%;max-width:320px;">Tiếp →</button>
       </div>
     </div>
 
@@ -1390,6 +1377,15 @@
       <button class="fc-back-btn" onclick="fcTestBackToPicker()">← Quay lại</button>
       <div class="fc-topbar-title" id="fcTestTitle">Test</div>
       <div class="fc-topbar-progress" id="fcTestProgress"></div>
+      <div class="timer-wrap">
+        <div class="timer-ring">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <circle class="bg" r="19" cx="22" cy="22"/>
+            <circle class="fg" id="fcTimerCircle" r="19" cx="22" cy="22" style="stroke-dasharray:119.38;stroke-dashoffset:0;"/>
+          </svg>
+          <span class="num" id="fcTimerNum">15</span>
+        </div>
+      </div>
     </div>
     <div class="fc-study-body">
       <div class="fc-progress-bar-wrap">
@@ -1903,7 +1899,8 @@ let fcComboCurrentSet = -1;
 let fcTestCards = [];
 let fcTestIdx = 0;
 let fcTestResults = [];
-let fcTestCurrentUserAns = '';
+let fcTestTimer = null;
+let fcTestTimeLeft = 15;
 
 function fcShowView(id) {
   ['fc-view-home','fc-view-study','fc-view-quiz','fc-view-ref','fc-view-combo-home','fc-view-fc-test'].forEach(v => {
@@ -2215,7 +2212,6 @@ function fcStartComboTest(i) {
   fcTestCards = shuffle([...fcComboSets[i]]);
   fcTestIdx = 0;
   fcTestResults = [];
-  fcTestCurrentUserAns = '';
   document.getElementById('fcTestTitle').textContent = 'Bộ ' + (i + 1);
   fcShowView('fc-view-fc-test');
   fcTestRender();
@@ -2228,7 +2224,62 @@ function fcResetCombo() {
 }
 
 // ── FC TEST ───────────────────────────────────────────────────────────────
+function fcPickDistractors(correct, allCards, count) {
+  const STOPWORDS = new Set(['và','hoặc','của','trong','cho','các','với','về','có','không','được','theo',
+    'tại','từ','đến','là','này','đó','khi','thì','như','để','trên','dưới','trước','sau',
+    'một','hai','ba','bốn','sáu','bảy','tám','chín','mười','lên','xuống','phải','nên',
+    'đã','sẽ','đang','cũng','chỉ','tất','cả','mỗi','nhiều','ít','rất','chưa','nếu']);
+  const UNITS = ['triệu','tỷ','ngàn','nghìn','phút','giây','giờ','ngày','tháng','tuần','lần','lượt',
+    'phần trăm','%','kb','mb','gb','tb','byte','ký tự','số','mức','hạn','thời gian'];
+
+  const tokenize = s => s.toLowerCase()
+    .replace(/[,.\-\/():;]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length > 1 && !STOPWORDS.has(t));
+
+  const hasNum   = s => /\d/.test(s);
+  const corrToks = new Set(tokenize(correct));
+  const corrNum  = hasNum(correct);
+  const corrUnits = UNITS.filter(u => correct.toLowerCase().includes(u));
+
+  // Build unique-back candidate list
+  const seenBacks = new Set([correct]);
+  const candidates = [];
+  for (const c of allCards) {
+    if (seenBacks.has(c.back)) continue;
+    seenBacks.add(c.back);
+    const toks = tokenize(c.back);
+    let score = 0;
+    // Shared content tokens
+    for (const t of toks) { if (corrToks.has(t)) score += 2; }
+    // Number-answer bonus: if correct is numeric, prefer other numeric answers
+    if (corrNum && hasNum(c.back)) score += 5;
+    // Same unit/measurement word bonus
+    for (const u of corrUnits) { if (c.back.toLowerCase().includes(u)) score += 4; }
+    candidates.push({ back: c.back, score });
+  }
+
+  // Sort by score desc; take top (count*4) pool then shuffle for variety
+  candidates.sort((a, b) => b.score - a.score);
+  const topPool = shuffle(candidates.slice(0, Math.max(count * 4, 15)));
+
+  const result = [];
+  for (const { back } of topPool) {
+    result.push(back);
+    if (result.length >= count) break;
+  }
+  // Fallback if pool was too small
+  if (result.length < count) {
+    for (const { back } of candidates.slice(topPool.length)) {
+      result.push(back);
+      if (result.length >= count) break;
+    }
+  }
+  return result;
+}
+
 function fcTestRender() {
+  clearInterval(fcTestTimer);
   const card  = fcTestCards[fcTestIdx];
   const total = fcTestCards.length;
   const pos   = fcTestIdx + 1;
@@ -2236,100 +2287,120 @@ function fcTestRender() {
   document.getElementById('fcTestProgress').textContent = pos + ' / ' + total;
   document.getElementById('fcTestBar').style.width = (pos / total * 100) + '%';
 
-  const secTag = card.section
-    ? `<div class="fc-quiz-section-tag">${escHtml(card.section)}</div>`
-    : '';
+  // 3 wrong answers picked by similarity to correct answer
+  const wrongs = fcPickDistractors(card.back, fcAllCards(), 3);
+
+  const opts   = shuffle([{ text: card.back, correct: true }, ...wrongs.map(t => ({ text: t, correct: false }))]);
+  const labels = ['A','B','C','D'];
+  const secTag = card.section ? `<div class="fc-quiz-section-tag">${escHtml(card.section)}</div>` : '';
 
   document.getElementById('fcTestBody').innerHTML = `
     <div class="fc-test-card">
       ${secTag}
       <div class="fc-test-question">${escHtml(card.front)}</div>
     </div>
-    <div class="fc-test-input-wrap">
-      <textarea class="fc-test-input" id="fcTestInput" placeholder="Nhập đáp án của bạn rồi nhấn Kiểm tra…" rows="3"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();fcTestSubmit();}"></textarea>
-      <button class="fc-test-submit-btn" id="fcTestSubmitBtn" onclick="fcTestSubmit()">🔍 Kiểm tra</button>
+    <div class="answers-grid">
+      ${opts.map((o, i) => `
+        <button class="answer-btn" data-correct="${o.correct}" onclick="fcTestSelect(this, ${o.correct})">
+          <span class="answer-label">${labels[i]}</span>
+          <span>${escHtml(o.text)}</span>
+        </button>`).join('')}
     </div>
-    <div class="fc-test-reveal" id="fcTestReveal" style="display:none">
-      <div class="fc-test-ans-row">
-        <div class="fc-test-ans-box user">
-          <div class="fc-test-ans-label">Câu trả lời của bạn</div>
-          <div class="fc-test-ans-text" id="fcTestUserAns"></div>
-        </div>
-        <div class="fc-test-ans-box correct">
-          <div class="fc-test-ans-label">✅ Đáp án đúng</div>
-          <div class="fc-test-ans-text">${escHtml(card.back)}</div>
-        </div>
-      </div>
-      <div class="fc-test-judge-row">
-        <button class="fc-judge-btn remember" onclick="fcTestJudge(true)">✅ Đúng rồi</button>
-        <button class="fc-judge-btn forgot" onclick="fcTestJudge(false)">❌ Chưa đúng</button>
-      </div>
+    <div id="fcNextWrap" style="display:none;text-align:center;margin-top:14px;">
+      <button onclick="fcTestNext()" style="height:40px;padding:0 28px;border-radius:var(--radius-round);border:none;background:var(--brand-500);color:var(--white);font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.3px;">Tiếp →</button>
     </div>
   `;
-  setTimeout(() => { const el = document.getElementById('fcTestInput'); if (el) el.focus(); }, 80);
+  fcStartFcTimer();
 }
 
-function fcTestSubmit() {
-  const inp = document.getElementById('fcTestInput');
-  if (!inp) return;
-  const val = inp.value.trim();
-  if (!val) { inp.focus(); inp.style.borderColor = '#ef4444'; setTimeout(() => inp.style.borderColor = '', 800); return; }
-  fcTestCurrentUserAns = val;
-  document.getElementById('fcTestUserAns').textContent = val;
-  document.getElementById('fcTestReveal').style.display = 'block';
-  document.getElementById('fcTestSubmitBtn').disabled = true;
-  inp.disabled = true;
-  document.getElementById('fcTestReveal').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+function fcTestSelect(btn, isCorrect) {
+  clearInterval(fcTestTimer);
+  document.querySelectorAll('#fcTestBody .answer-btn').forEach(b => {
+    b.disabled = true;
+    if (b.dataset.correct === 'true') b.classList.add('correct');
+    else if (b === btn)               b.classList.add('wrong');
+  });
+  fcTestResults.push({ card: fcTestCards[fcTestIdx], correct: isCorrect });
+  const nw = document.getElementById('fcNextWrap');
+  if (nw) nw.style.display = '';
 }
 
-function fcTestJudge(correct) {
-  fcTestResults.push({ card: fcTestCards[fcTestIdx], userAnswer: fcTestCurrentUserAns, correct });
+function fcTestNext() {
+  clearInterval(fcTestTimer);
   fcTestIdx++;
-  if (fcTestIdx >= fcTestCards.length) {
-    fcTestShowResult();
-  } else {
-    fcTestRender();
-  }
+  if (fcTestIdx >= fcTestCards.length) fcTestShowResult();
+  else fcTestRender();
+}
+
+function fcStartFcTimer() {
+  fcTestTimeLeft = 15;
+  fcUpdateFcTimerUI(15);
+  fcTestTimer = setInterval(() => {
+    fcTestTimeLeft--;
+    fcUpdateFcTimerUI(fcTestTimeLeft);
+    if (fcTestTimeLeft <= 0) {
+      clearInterval(fcTestTimer);
+      document.querySelectorAll('#fcTestBody .answer-btn').forEach(b => {
+        b.disabled = true;
+        if (b.dataset.correct === 'true') b.classList.add('correct');
+      });
+      fcTestResults.push({ card: fcTestCards[fcTestIdx], correct: false });
+      const nw = document.getElementById('fcNextWrap');
+      if (nw) nw.style.display = '';
+    }
+  }, 1000);
+}
+
+function fcUpdateFcTimerUI(t) {
+  const numEl  = document.getElementById('fcTimerNum');
+  const circle = document.getElementById('fcTimerCircle');
+  if (!numEl || !circle) return;
+  numEl.textContent = t;
+  const offset = 119.38 * (1 - t / 15);
+  circle.style.strokeDashoffset = offset;
+  if (t <= 5)       circle.style.stroke = '#cb3937';
+  else if (t <= 10) circle.style.stroke = '#f79009';
+  else              circle.style.stroke = 'var(--brand-500)';
 }
 
 function fcTestShowResult() {
-  const total   = fcTestResults.length;
+  clearInterval(fcTestTimer);
+  const total   = fcTestCards.length;
   const correct = fcTestResults.filter(r => r.correct).length;
+  const wrong   = total - correct;
   const pct     = Math.round(correct / total * 100);
   const icon    = pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '📚';
-  const msg     = pct >= 80 ? 'Xuất sắc!' : pct >= 50 ? 'Khá tốt, tiếp tục cố gắng!' : 'Hãy ôn luyện thêm nhé!';
-
-  if (fcComboCurrentSet >= 0) fcComboDone[fcComboCurrentSet] = true;
-
-  document.getElementById('fcTestProgress').textContent = '';
-  document.getElementById('fcTestBar').style.width = '100%';
+  const msg     = pct >= 80 ? 'Tuyệt vời!' : pct >= 50 ? 'Khá tốt, cố thêm nhé!' : 'Hãy ôn luyện thêm!';
   document.getElementById('fcTestBody').innerHTML = `
     <div class="fc-quiz-result">
       <div class="fc-result-icon">${icon}</div>
       <div class="fc-result-title">${msg}</div>
-      <div class="fc-result-sub">Bộ ${fcComboCurrentSet + 1} — ${total} thẻ</div>
+      <div class="fc-result-sub">Bộ ${fcComboCurrentSet + 1} — ${total} câu</div>
       <div class="fc-result-stat">
         <div><div class="fc-result-num green">${correct}</div><div class="fc-result-lbl">Đúng</div></div>
-        <div><div class="fc-result-num red">${total - correct}</div><div class="fc-result-lbl">Sai</div></div>
+        <div><div class="fc-result-num red">${wrong}</div><div class="fc-result-lbl">Sai / Hết giờ</div></div>
         <div><div class="fc-result-num" style="color:var(--brand-500)">${pct}%</div><div class="fc-result-lbl">Tỷ lệ</div></div>
       </div>
       <button class="fc-result-retry" onclick="fcTestRetry()">🔄 Làm lại bộ này</button>
       <button class="fc-result-back" onclick="fcTestBackToPicker()">← Về chọn bộ</button>
     </div>
   `;
+  document.getElementById('fcTestProgress').textContent = '';
+  fcComboDone[fcComboCurrentSet] = true;
+  fcRenderComboPicker();
 }
 
 function fcTestRetry() {
+  clearInterval(fcTestTimer);
   fcTestCards = shuffle([...fcComboSets[fcComboCurrentSet]]);
   fcTestIdx = 0;
   fcTestResults = [];
-  fcTestCurrentUserAns = '';
   document.getElementById('fcTestBar').style.width = '0%';
   fcTestRender();
 }
 
 function fcTestBackToPicker() {
+  clearInterval(fcTestTimer);
   fcShowView('fc-view-combo-home');
   fcRenderComboPicker();
 }
