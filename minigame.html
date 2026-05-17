@@ -211,6 +211,8 @@ let snapped=0, swapCount=0, swapHoverIdx=-1;
 let tLeft=SECS, ticker=null, alive=false;
 let bX=0,bY=0,pW=0,pH=0,tab=0;
 let cvW=0, cvH=0; // logical canvas dimensions (CSS px)
+let dpr=1;         // device pixel ratio (set in layout)
+let imgAR=COLS/ROWS; // uploaded image aspect ratio (W/H), default grid ratio
 let logo=null, uploadedImg=null, raf=null;
 let gameMode='outside'; // 'outside' | 'inside' | 'swap'
 let showHints=false;
@@ -237,7 +239,7 @@ function processFile(file){
   const reader=new FileReader();
   reader.onload=ev=>{
     const img=new Image();
-    img.onload=()=>{ uploadedImg=img; showPreview(img); };
+    img.onload=()=>{ uploadedImg=img; imgAR=img.naturalWidth/img.naturalHeight; showPreview(img); };
     img.src=ev.target.result;
   };
   reader.readAsDataURL(file);
@@ -369,18 +371,28 @@ function seg(c2,x0,y0,x1,y1,dir,axis,ts){
 //  LAYOUT
 // ════════════════════════════════════════════
 function layout(){
-  const dpr=window.devicePixelRatio||1;
+  dpr=window.devicePixelRatio||1;
   const W=window.innerWidth, H=window.innerHeight-50;
   cvW=W; cvH=H;
   cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
   cv.style.width=W+'px'; cv.style.height=H+'px';
   cx.setTransform(dpr,0,0,dpr,0,0);
-  const bW=Math.min(W*.48, H*.82*COLS/ROWS);
-  const bH=bW*ROWS/COLS;
+
+  const ar=imgAR>0?imgAR:COLS/ROWS;
+  let bW,bH;
+  if(gameMode==='swap'||gameMode==='inside'){
+    // Maximize board — pieces live inside it, no side panels needed
+    const avW=W*0.96, avH=H*0.94;
+    if(avW/avH>=ar){bH=avH;bW=bH*ar;}else{bW=avW;bH=bW/ar;}
+  }else{
+    // Outside mode: cap width so side panels have room for pieces
+    const avW=W*0.52, avH=H*0.90;
+    if(avW/avH>=ar){bH=avH;bW=bH*ar;}else{bW=avW;bH=bW/ar;}
+  }
   pW=bW/COLS; pH=bH/ROWS;
   tab=Math.min(pW,pH)*.20;
   bX=(W-bW)/2; bY=(H-bH)/2;
-  snapR=Math.max(30, Math.min(56, pW*0.22)); // ~22% of piece size
+  snapR=Math.max(22, Math.min(64, Math.min(pW,pH)*0.22));
 }
 
 // ════════════════════════════════════════════
@@ -396,25 +408,32 @@ function initPieces(){
 function scatter(){
   const W=cvW, H=cvH;
   const bboxW=pW+tab*2, bboxH=pH+tab*2;
-  const pad=16;
-
-  // Left panel: 0..bX, Right panel: bX+boardW..W
-  const boardW=COLS*pW;
-  const leftEnd=bX-tab-18;          // right edge of left panel
-  const rightStart=bX+boardW+tab+18; // left edge of right panel
+  const pad=18;
+  const boardW=COLS*pW, boardH=ROWS*pH;
+  const leftEnd=bX-tab-18;
+  const rightStart=bX+boardW+tab+18;
+  const leftPanelW=leftEnd-pad;
+  const rightPanelW=W-rightStart-pad;
+  // Wide boards (e.g. 2:1 image) fall back to top/bottom scatter
+  const useSides=leftPanelW>=bboxW*0.8&&rightPanelW>=bboxW*0.8;
+  const topEnd=bY-tab-18;
+  const botStart=bY+boardH+tab+18;
 
   pieces.forEach((p,i)=>{
-    const inLeft=i<Math.ceil(N/2);
+    const inFirst=i<Math.ceil(N/2);
     let x,y;
-    if(inLeft){
-      const span=Math.max(1,leftEnd-bboxW-pad);
-      x=pad+Math.random()*span;
+    if(useSides){
+      x=inFirst
+        ?pad+Math.random()*Math.max(1,leftPanelW-bboxW)
+        :rightStart+Math.random()*Math.max(1,rightPanelW-bboxW);
+      y=pad+Math.random()*Math.max(1,H-bboxH-pad*2);
     }else{
-      const span=Math.max(1,W-rightStart-bboxW-pad);
-      x=rightStart+Math.random()*span;
+      // Top / bottom scatter
+      x=pad+Math.random()*Math.max(1,W-bboxW-pad*2);
+      y=inFirst
+        ?pad+Math.random()*Math.max(1,topEnd-bboxH-pad)
+        :botStart+Math.random()*Math.max(1,H-botStart-bboxH-pad);
     }
-    const ySpan=Math.max(1,H-bboxH-pad*2);
-    y=pad+Math.random()*ySpan;
     p.x=x; p.y=y; p.snapped=false; p.z=i;
   });
 }
@@ -741,7 +760,7 @@ function startGame(){
   document.getElementById('start').style.display='none';
   document.getElementById('game').classList.add('on');
   layout();
-  logo=buildLogoCanvas(Math.round(pW*COLS*1.6), Math.round(pH*ROWS*1.6));
+  logo=buildLogoCanvas(Math.round(pW*COLS*dpr), Math.round(pH*ROWS*dpr));
   const modeLabel={outside:'🧩 Kiểu 1 · Ngoài',inside:'🧩 Kiểu 2 · Trong',swap:'🔀 Kiểu 3 · Hoán đổi'};
   document.getElementById('hudtitle').textContent=modeLabel[gameMode]||'🧩 BIDV Jigsaw';
   initPieces();
