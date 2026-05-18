@@ -1371,6 +1371,25 @@
     </div>
   </div>
 
+  <!-- VIEW: PER-SET COMBO PICKER -->
+  <div id="fc-view-set-combo-home" style="display:none">
+    <div class="fc-home">
+      <div class="fc-topbar" style="margin-bottom:12px;">
+        <button class="fc-back-btn" onclick="fcBack()">← Quay lại</button>
+        <div class="fc-topbar-title" id="fcSetComboTitle">🎯 Test theo bộ</div>
+        <div class="fc-topbar-progress" id="fcSetComboDoneLabel"></div>
+      </div>
+      <div class="fc-combo-desc">
+        Bộ <strong id="fcSetComboTotalCards">0</strong> thẻ được chia thành <strong id="fcSetComboN">0</strong> nhóm 20 câu không trùng nhau.
+        Chọn nhóm để bắt đầu test.
+      </div>
+      <div style="text-align:right;margin:10px 0 14px;">
+        <button class="combo-reset-btn" onclick="fcResetSetCombo()">🔀 Random lại</button>
+      </div>
+      <div class="combo-grid" id="fcSetComboGrid"></div>
+    </div>
+  </div>
+
   <!-- VIEW: FC TEST (fill-in answer) -->
   <div id="fc-view-fc-test" style="display:none">
     <div class="fc-topbar">
@@ -1896,6 +1915,11 @@ let fcPrevView = 'home';
 let fcComboSets = [];
 let fcComboDone = [];
 let fcComboCurrentSet = -1;
+let fcSetComboSets = [];
+let fcSetComboDone = [];
+let fcSetComboCurrentSet = -1;
+let fcSetComboSetIdx = -1;
+let fcTestMode = 'combo';
 let fcTestCards = [];
 let fcTestIdx = 0;
 let fcTestResults = [];
@@ -1903,7 +1927,7 @@ let fcTestTimer = null;
 let fcTestTimeLeft = 15;
 
 function fcShowView(id) {
-  ['fc-view-home','fc-view-study','fc-view-quiz','fc-view-ref','fc-view-combo-home','fc-view-fc-test'].forEach(v => {
+  ['fc-view-home','fc-view-study','fc-view-quiz','fc-view-ref','fc-view-combo-home','fc-view-set-combo-home','fc-view-fc-test'].forEach(v => {
     document.getElementById(v).style.display = v === id ? '' : 'none';
   });
 }
@@ -1916,16 +1940,19 @@ function fcBack() {
 // ── Home ──────────────────────────────────────────────────────────────────
 function fcRenderHome() {
   const grid = document.getElementById('fcSetsGrid');
-  grid.innerHTML = FC_SETS.map((s, i) => `
+  grid.innerHTML = FC_SETS.map((s, i) => {
+    const nSets = Math.ceil(s.cards.length / 20);
+    return `
     <div class="fc-set-card">
       <div class="fc-set-name">${escHtml(s.name)}</div>
       <div class="fc-set-count">${s.cards.length} thẻ</div>
       <div class="fc-set-actions">
         <button class="fc-study-btn" onclick="fcStartStudy(${i})">📖 Học</button>
         <button class="fc-quiz-btn" onclick="fcStartQuiz(${i})">📝 Kiểm tra</button>
+        <button class="fc-quiz-btn" onclick="fcShowSetComboHome(${i})" style="background:var(--brand-500);color:var(--white);border-color:var(--brand-500);">🎯 Test (${nSets} bộ)</button>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── Study mode ────────────────────────────────────────────────────────────
@@ -2208,6 +2235,7 @@ function fcRenderComboPicker() {
 }
 
 function fcStartComboTest(i) {
+  fcTestMode = 'combo';
   fcComboCurrentSet = i;
   fcTestCards = shuffle([...fcComboSets[i]]);
   fcTestIdx = 0;
@@ -2375,7 +2403,7 @@ function fcTestShowResult() {
     <div class="fc-quiz-result">
       <div class="fc-result-icon">${icon}</div>
       <div class="fc-result-title">${msg}</div>
-      <div class="fc-result-sub">Bộ ${fcComboCurrentSet + 1} — ${total} câu</div>
+      <div class="fc-result-sub">${fcTestMode === 'set-combo' ? FC_SETS[fcSetComboSetIdx].name + ' · Bộ ' + (fcSetComboCurrentSet + 1) : 'Bộ ' + (fcComboCurrentSet + 1)} — ${total} câu</div>
       <div class="fc-result-stat">
         <div><div class="fc-result-num green">${correct}</div><div class="fc-result-lbl">Đúng</div></div>
         <div><div class="fc-result-num red">${wrong}</div><div class="fc-result-lbl">Sai / Hết giờ</div></div>
@@ -2386,13 +2414,19 @@ function fcTestShowResult() {
     </div>
   `;
   document.getElementById('fcTestProgress').textContent = '';
-  fcComboDone[fcComboCurrentSet] = true;
-  fcRenderComboPicker();
+  if (fcTestMode === 'set-combo') {
+    fcSetComboDone[fcSetComboCurrentSet] = true;
+    fcRenderSetComboPicker();
+  } else {
+    fcComboDone[fcComboCurrentSet] = true;
+    fcRenderComboPicker();
+  }
 }
 
 function fcTestRetry() {
   clearInterval(fcTestTimer);
-  fcTestCards = shuffle([...fcComboSets[fcComboCurrentSet]]);
+  const src = fcTestMode === 'set-combo' ? fcSetComboSets[fcSetComboCurrentSet] : fcComboSets[fcComboCurrentSet];
+  fcTestCards = shuffle([...src]);
   fcTestIdx = 0;
   fcTestResults = [];
   document.getElementById('fcTestBar').style.width = '0%';
@@ -2401,8 +2435,70 @@ function fcTestRetry() {
 
 function fcTestBackToPicker() {
   clearInterval(fcTestTimer);
-  fcShowView('fc-view-combo-home');
-  fcRenderComboPicker();
+  if (fcTestMode === 'set-combo') {
+    fcShowView('fc-view-set-combo-home');
+    fcRenderSetComboPicker();
+  } else {
+    fcShowView('fc-view-combo-home');
+    fcRenderComboPicker();
+  }
+}
+
+
+// ── Per-set combo ─────────────────────────────────────────────────────────
+function fcGenerateSetComboSets(setIdx) {
+  const cards = shuffle([...FC_SETS[setIdx].cards]);
+  fcSetComboSets = [];
+  for (let i = 0; i < cards.length; i += 20) {
+    fcSetComboSets.push(cards.slice(i, i + 20));
+  }
+  fcSetComboDone = new Array(fcSetComboSets.length).fill(false);
+  fcSetComboCurrentSet = -1;
+  fcSetComboSetIdx = setIdx;
+}
+
+function fcShowSetComboHome(setIdx) {
+  if (fcSetComboSetIdx !== setIdx || fcSetComboSets.length === 0) fcGenerateSetComboSets(setIdx);
+  fcShowView('fc-view-set-combo-home');
+  fcRenderSetComboPicker();
+}
+
+function fcRenderSetComboPicker() {
+  const set = FC_SETS[fcSetComboSetIdx];
+  const done = fcSetComboDone.filter(Boolean).length;
+  const n = fcSetComboSets.length;
+  document.getElementById('fcSetComboTitle').textContent = '🎯 ' + set.name;
+  document.getElementById('fcSetComboDoneLabel').textContent = done + ' / ' + n + ' hoàn thành';
+  document.getElementById('fcSetComboTotalCards').textContent = set.cards.length;
+  document.getElementById('fcSetComboN').textContent = n;
+  document.getElementById('fcSetComboGrid').innerHTML = fcSetComboSets.map((s, i) => {
+    const isDone = fcSetComboDone[i];
+    const isCur  = fcSetComboCurrentSet === i && !isDone;
+    const cls    = isDone ? 'done' : (isCur ? 'current' : '');
+    const status = isDone ? '✅ Hoàn thành' : (isCur ? '▶ Đang làm' : '⭕ Chưa làm');
+    return `<div class="combo-set-card ${cls}" onclick="fcStartSetComboTest(${i})">
+      <div class="combo-set-num">Bộ ${i + 1}</div>
+      <div class="combo-set-count">${s.length} thẻ</div>
+      <div class="combo-set-status">${status}</div>
+    </div>`;
+  }).join('');
+}
+
+function fcStartSetComboTest(i) {
+  fcTestMode = 'set-combo';
+  fcSetComboCurrentSet = i;
+  fcTestCards = shuffle([...fcSetComboSets[i]]);
+  fcTestIdx = 0;
+  fcTestResults = [];
+  document.getElementById('fcTestTitle').textContent = FC_SETS[fcSetComboSetIdx].name + ' · Bộ ' + (i + 1);
+  fcShowView('fc-view-fc-test');
+  fcTestRender();
+}
+
+function fcResetSetCombo() {
+  if (!confirm('Random lại sẽ xoá tiến độ hiện tại. Tiếp tục?')) return;
+  fcGenerateSetComboSets(fcSetComboSetIdx);
+  fcRenderSetComboPicker();
 }
 
 
